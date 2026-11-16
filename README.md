@@ -21,6 +21,7 @@ The default seed is 42. The builder refuses to overwrite an existing database. T
 | --- | --- |
 | Source and raw deliveries | Two fictional clients share a schema. Provider attribution changes over time. Claim lines include repeats, delays, zero pay and signed adjustments in the source ledger. Raw deliveries carry replacement amounts. |
 | Reporting | Two frozen close cutoffs, member-month reports, PMPM, a synthetic expense-to-benchmark ratio and a restatement view. Missing benchmark values remain explicit. |
+| dbt analytics | Export close facts to Parquet and build a reporting mart and restatement table in DuckDB. The incremental monthly model loads each immutable close once. |
 | Reconciliation | The warehouse calculates from versioned deliveries. The oracle calculates independently by summing payment-ledger deltas. Differences fail the build. |
 | Cost prediction | Ridge regression and a prior-quarter spend baseline. Features use only payments received before the prediction date. The evaluation holds out later periods, unseen members, and a second fictional client. The trained coefficients can produce versioned batch predictions. |
 | Financial tools | Read-only, parameterized close and restatement queries scoped to a selected fictional client. The CLI returns values and their source view and reports unsupported or missing requests. It is the deterministic tool layer for a future LLM. |
@@ -30,8 +31,21 @@ The default seed is 42. The builder refuses to overwrite an existing database. T
 - Original and revised closes each reconciled 1,181,592 member-month rows with zero differences against the payment ledger. They took 21.79 and 22.42 seconds. Total build time was 86.52 seconds on the development laptop.
 - The cost model trained on 60,000 synthetic member-period rows. On 5,000 unseen members in a later period, mean absolute error was $302.27 versus $330.05 for prior-quarter spend. On 25,000 members from the held-out fictional client, it was $377.26 versus $561.72. These are synthetic benchmark results.
 - The financial tools passed 96 numerical checks and two unsupported or missing-evidence checks. Four automated test cases passed locally.
+- Exported 2,363,184 close facts to Parquet. Ran three dbt models and three data tests twice. All 96 monthly aggregate rows matched SQLite after the incremental rerun.
 
 All inputs are independently generated. The database is an illustrative claims model. The expense-to-benchmark ratio is a portfolio metric. Public CMS field layouts and official settlement are outside this implementation. The tenant filter is a query constraint in a local CLI. An authenticated service would need to bind it to the calling identity.
+
+### Build the dbt marts
+
+```powershell
+python -m pip install -r requirements-analytics.txt
+python export_closes.py --database out/healthcare-platform.sqlite --out out/close_fact.parquet
+$env:CLAIMS_CLOSE_PARQUET = (Resolve-Path out/close_fact.parquet).Path.Replace('\','/')
+$env:CLAIMS_ANALYTICS_DB = (Join-Path (Get-Location) 'out/claims_analytics.duckdb').Replace('\','/')
+dbt build --project-dir analytics --profiles-dir analytics
+```
+
+Keep published close IDs immutable when reusing a DuckDB file. Use a new warehouse file or `dbt build --full-refresh` when changing the source dataset under the same close IDs.
 
 ## Small fault drills
 
@@ -76,4 +90,4 @@ Use a fresh database path when changing the seed or population size. The cutoff 
 
 With seed 42 and 1,000 synthetic members, the clean run reconciled 1,749 member-months from 5,762 deliveries representing 5,238 unique claim versions. Repeating the clean run produced the same files. Both fault drills failed as intended. One found two offsetting errors and the other found a missing member-month with zero paid expense. The total paid remained equal in both cases.
 
-The next release should add a source manifest and incremental extraction, then move reporting models into dbt and run the fault drills in CI. See [project scope](PROJECT-SCOPE.md) for the release order.
+The next release should add a source manifest and incremental extraction. See [project scope](PROJECT-SCOPE.md) for the release order.

@@ -9,3 +9,19 @@ jobs:
         with:
           python-version: '3.10'
       - run: python -m unittest discover -v
+  dbt:
+    runs-on: ubuntu-latest
+    env:
+      DBT_SEND_ANONYMOUS_USAGE_STATS: 'false'
+      CLAIMS_CLOSE_PARQUET: ${{ github.workspace }}/out/close_fact.parquet
+      CLAIMS_ANALYTICS_DB: ${{ github.workspace }}/out/claims_analytics.duckdb
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install -r requirements-analytics.txt
+      - run: python build_platform.py --members 1000 --database out/claims.sqlite
+      - run: python export_closes.py --database out/claims.sqlite --out out/close_fact.parquet
+      - run: dbt build --project-dir analytics --profiles-dir analytics
+      - run: dbt build --project-dir analytics --profiles-dir analytics

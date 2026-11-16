@@ -1,0 +1,7 @@
+healthcare_claims:
+  target: local
+  outputs:
+    local:
+      type: duckdb
+      path: "{{ env_var('CLAIMS_ANALYTICS_DB') }}"
+      threads: 2

@@ -3,3 +3,6 @@ __pycache__/
 *.sqlite
 *.sqlite-*
 .venv/
+analytics/target/
+analytics/logs/
+analytics/.user.yml

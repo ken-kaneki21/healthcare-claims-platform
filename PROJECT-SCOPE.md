@@ -7,7 +7,7 @@ Build one independent platform with generated U.S. healthcare data. Its first us
 | Release | Proof required |
 | --- | --- |
 | Claims foundation | Local fault drills cover transactional replay, conflicting duplicate deliveries and member-level differences hidden by matching totals. The full generator creates two clients and two close snapshots from shared synthetic events. |
-| Financial reporting | Local SQLite delivers member-month paid expense, PMPM, benchmark coverage and restatement. Source manifests, dbt models and official-format adapters remain open. |
+| Financial reporting | SQLite produces reconciled close snapshots. dbt and DuckDB produce paid expense, PMPM, benchmark coverage and restatement from Parquet. Source manifests and official-format adapters remain open. |
 | Second client and scale | Full-scale reconciliation ran for two fictional clients with local query filters. Full versus incremental backfill timings, memory profiling and authenticated tenant isolation remain open. |
 | Predictive ML | Local time-aware evaluation and versioned batch inference are implemented. A model registry, feature monitoring and additional model comparisons remain open. |
 | Financial AI | The deterministic tools and their oracle checks are implemented. The LLM, natural-language evaluation, token cost and latency report remain open. |
@@ -30,4 +30,4 @@ The current schema is illustrative. Future CMS-shaped ingestion should pin a pub
 - **Month-end restatement trail.** Save both original and revised closes with cutoff, source manifest and rule version. Produce a bridge showing changes due to late arrivals, revised claim versions, and changed rules. Keep the first published close reproducible.
 - **Evidence for each release.** Store test reports and benchmark metadata with the code revision, seed, cutoff, dataset size, workload and environment. Compare any AI explanation with a rules-only baseline. An office pilot has its own measurement record and approval.
 
-Next implementation milestone is a dbt reporting model and a replayable batch loader whose manifest shows which delivery affected which report period. Cloud deployment remains a later milestone.
+Next implementation milestone is a replayable batch loader whose manifest shows which delivery affected which report period. Cloud deployment remains a later milestone.
