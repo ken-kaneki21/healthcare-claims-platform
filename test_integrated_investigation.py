@@ -56,6 +56,21 @@ class InvestigationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "signature"):
             load(path, self.database, SECRET)
 
+    def test_partial_outcome_cannot_be_reported_as_actual(self):
+        from healthcare.investigation import EvidenceUnavailable, cohort_tool
+
+        snapshot = {
+            **self.artifact,
+            "as_of": "2025-12-01",
+            "horizon_end_exclusive": "2026-03-01",
+            "actual_receipt_cutoff_exclusive": "2026-05-30",
+        }
+        with (
+            closing(sqlite3.connect(self.database)) as db,
+            self.assertRaisesRegex(EvidenceUnavailable, "not matured"),
+        ):
+            cohort_tool(db, 1, snapshot, {3: 15000})
+
     def test_api_uses_approved_snapshot_and_resumes_after_failure(self):
         try:
             from fastapi.testclient import TestClient

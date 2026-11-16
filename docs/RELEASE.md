@@ -11,3 +11,7 @@ This local reference release demonstrates financial reconciliation, analytics, c
 Use the [Docker quickstart](deployment.md#local-tls-identity-and-inference-verification) to reproduce the stack. See [release verification](evidence/v2-local-release-verification.json), [live-model evaluation](evidence/v2-live-llm-evaluation.json), and [implementation status](IMPLEMENTATION_STATUS.md) for scope, tests, and limitations.
 
 Public cloud deployment and real healthcare use have no verification in this release.
+
+## Candidate v2.1.0
+
+This candidate connects the signed registry and approved forecasts to tenant-scoped financial investigations. It adds strict outcome-maturity checks, a seasonal baseline, paginated forecasts, independently verified forecast-versus-actual comparisons, drift evidence, and persisted execution traces. See the [engineering walkthrough](ENGINEERING_WALKTHROUGH.md) and [acceptance matrix](INTEGRATION_ACCEPTANCE.md).

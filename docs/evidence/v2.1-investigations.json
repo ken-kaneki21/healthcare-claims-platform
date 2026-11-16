@@ -1,0 +1,807 @@
+{
+  "lifecycle": {
+    "members": 1500,
+    "close_sha256": "dbd3cfd788034765e0833aa5fbfcab52bd9cbb0772b5c795da2567045aa02cd4",
+    "close_fact_mismatches": 0,
+    "closes": [
+      {
+        "run": "original",
+        "cutoff": "2026-01-15",
+        "rows": 35201,
+        "paid_cents": 1151784643,
+        "ledger_differences": 0,
+        "seconds": 0.53
+      },
+      {
+        "run": "revised",
+        "cutoff": "2026-03-31",
+        "rows": 35201,
+        "paid_cents": 1182214661,
+        "ledger_differences": 0,
+        "seconds": 0.44
+      }
+    ],
+    "initial": {
+      "version": "ridge-previous",
+      "action": "promote"
+    },
+    "promoted": {
+      "version": "ridge-approved",
+      "action": "promote"
+    },
+    "rejected": "Candidate did not beat champion",
+    "rollback": {
+      "version": "ridge-previous",
+      "action": "rollback"
+    },
+    "previous_validation_mae_usd": 354.4460543674352,
+    "champion_validation_mae_usd": 354.1127210341018,
+    "prediction_totals_cents": {
+      "previous": {
+        "1": 42721902,
+        "2": 40257702,
+        "3": 43463064
+      },
+      "approved": {
+        "1": 42771902,
+        "2": 40307702,
+        "3": 43513064
+      },
+      "rollback": {
+        "1": 42721902,
+        "2": 40257702,
+        "3": 43463064
+      }
+    }
+  },
+  "offline_http": {
+    "close": {
+      "status": "ok",
+      "evidence": {
+        "client_id": 1,
+        "month": "2025-11-01",
+        "view": "monthly_finance",
+        "cutoff": "2026-03-31"
+      },
+      "values": {
+        "paid_cents": 10259329,
+        "member_months": 400,
+        "pmpm_cents": 25648.3225,
+        "missing_benchmark_rows": 3,
+        "benchmark_cents": 31367359,
+        "expense_to_benchmark": null
+      },
+      "operation": "close",
+      "summary": "Revised paid claims totaled $102,593.29.",
+      "tools": [
+        {
+          "name": "financial_close",
+          "source": "monthly_finance"
+        }
+      ],
+      "trace": [
+        "REQUEST_RECEIVED",
+        "AUTHORIZED",
+        "INTENT_CLASSIFIED",
+        "TOOLS_SELECTED",
+        "TOOLS_EXECUTED",
+        "RESULTS_VALIDATED",
+        "ANSWER_GENERATED",
+        "ANSWER_VERIFIED",
+        "COMPLETED"
+      ],
+      "request_id": "offline-integrated-close"
+    },
+    "restatement": {
+      "status": "ok",
+      "evidence": {
+        "client_id": 1,
+        "month": "2025-11-01",
+        "view": "restatement",
+        "cutoff": "2026-03-31",
+        "original_cutoff": "2026-01-15",
+        "bridge_source": "payment_event"
+      },
+      "values": {
+        "original_paid_cents": 8582363,
+        "revised_paid_cents": 10259329,
+        "difference_cents": 1676966,
+        "late_first_payments_cents": 1863218,
+        "adjustments_cents": -186252
+      },
+      "operation": "restatement",
+      "summary": "Revised paid claims changed by $16,769.66. Late first payments contributed $18,632.18 and adjustments contributed $-1,862.52.",
+      "tools": [
+        {
+          "name": "financial_close",
+          "source": "restatement"
+        },
+        {
+          "name": "late_correction",
+          "source": "payment_event / claim / month",
+          "tenant_id": 1,
+          "row_count": 1,
+          "example": {
+            "claim_id": 21886,
+            "line_no": 2,
+            "version": 2,
+            "received_date": "2026-02-14",
+            "net_effect_cents": -15884
+          }
+        }
+      ],
+      "trace": [
+        "REQUEST_RECEIVED",
+        "AUTHORIZED",
+        "INTENT_CLASSIFIED",
+        "TOOLS_SELECTED",
+        "TOOLS_EXECUTED",
+        "RESULTS_VALIDATED",
+        "ANSWER_GENERATED",
+        "ANSWER_VERIFIED",
+        "COMPLETED"
+      ],
+      "request_id": "offline-integrated-restatement"
+    },
+    "forecast": {
+      "status": "ok",
+      "values": {
+        "count": 500,
+        "forecast_cents": 42771902
+      },
+      "evidence": {
+        "tenant_id": 1,
+        "model_version": "ridge-approved",
+        "as_of": "2025-09-01",
+        "horizon_end_exclusive": "2025-12-01",
+        "prediction_timestamp": "2026-11-16T21:21:26.115198+05:30",
+        "evidence_id": "121ba52cd2a019993875787e4214c4ab804dee9f4dc63683575fd9104ef1b227",
+        "units": "USD cents",
+        "estimate_type": "point forecast"
+      },
+      "tools": [
+        {
+          "name": "approved_forecast",
+          "source": "signed forecast snapshot",
+          "row_count": 500
+        }
+      ],
+      "summary": "The approved forecast totals 42771902 USD cents across 500 members.",
+      "trace": [
+        "REQUEST_RECEIVED",
+        "AUTHORIZED",
+        "INTENT_CLASSIFIED",
+        "TOOLS_SELECTED",
+        "TOOLS_EXECUTED",
+        "RESULTS_VALIDATED",
+        "ANSWER_GENERATED",
+        "ANSWER_VERIFIED",
+        "COMPLETED"
+      ],
+      "request_id": "offline-integrated-forecast"
+    },
+    "variance_and_drift": {
+      "status": "ok",
+      "values": {
+        "count": 500,
+        "forecast_cents": 42771902,
+        "actual_cents": 39865655,
+        "prior_quarter_as_of_cents": 26361410,
+        "actual_minus_forecast_cents": -2906247,
+        "forecast_minus_prior_cents": 16410492
+      },
+      "evidence": {
+        "tenant_id": 1,
+        "model_version": "ridge-approved",
+        "as_of": "2025-09-01",
+        "horizon_end_exclusive": "2025-12-01",
+        "prediction_timestamp": "2026-11-16T21:21:26.115198+05:30",
+        "evidence_id": "121ba52cd2a019993875787e4214c4ab804dee9f4dc63683575fd9104ef1b227",
+        "units": "USD cents",
+        "estimate_type": "point forecast",
+        "validation_mae_usd": 354.1127210341018,
+        "validation_sha256": "163982ac07ff5b6f43a7b606f2b9fb44c8c2693ff5d4f66254235d60ca374995"
+      },
+      "tools": [
+        {
+          "name": "approved_forecast",
+          "source": "signed forecast snapshot",
+          "row_count": 500
+        },
+        {
+          "name": "matured_actual_and_prior",
+          "source": "payment_event / claim / month",
+          "row_count": 2998,
+          "actual_receipt_cutoff_exclusive": "2026-03-01",
+          "actual_cents": 39865655,
+          "prior_quarter_as_of_cents": 26361410
+        },
+        {
+          "name": "model_monitor",
+          "source": "signed monitoring snapshot",
+          "model_version": "ridge-approved",
+          "report": {
+            "alert": false,
+            "features": {
+              "age_band": {
+                "alert": false,
+                "mean": 2.0,
+                "standardized_shift": 0.02208092028127604
+              },
+              "claim_count_6_months": {
+                "alert": false,
+                "mean": 7.004,
+                "standardized_shift": 0.05969499180782311
+              },
+              "high_needs": {
+                "alert": false,
+                "mean": 0.092,
+                "standardized_shift": 0.004280701754385968
+              },
+              "paid_3_months_usd": {
+                "alert": false,
+                "mean": 527.2282000000005,
+                "standardized_shift": 0.11861055207276568
+              },
+              "paid_6_months_usd": {
+                "alert": false,
+                "mean": 1480.1537600000004,
+                "standardized_shift": 0.38628387297985706
+              }
+            },
+            "predictions": {
+              "p50": {
+                "alert": false,
+                "observed_usd": 856.2763733014799,
+                "relative_shift": 0.009172762916769304
+              },
+              "p95": {
+                "alert": false,
+                "observed_usd": 975.5190270253061,
+                "relative_shift": 0.024524768959572195
+              }
+            },
+            "rows": 500,
+            "tenant": 1
+          }
+        }
+      ],
+      "summary": "The approved forecast totals 42771902 USD cents across 500 members. Matured actuals total 39865655 USD cents. Actuals minus forecast is -2906247 USD cents. Forecast minus prior-quarter paid cost is 16410492 USD cents.",
+      "trace": [
+        "REQUEST_RECEIVED",
+        "AUTHORIZED",
+        "INTENT_CLASSIFIED",
+        "TOOLS_SELECTED",
+        "TOOLS_EXECUTED",
+        "RESULTS_VALIDATED",
+        "ANSWER_GENERATED",
+        "ANSWER_VERIFIED",
+        "COMPLETED"
+      ],
+      "request_id": "offline-integrated-actuals"
+    },
+    "approved_prediction": {
+      "tenant_id": 1,
+      "model_version": "ridge-approved",
+      "as_of": "2025-09-01",
+      "horizon_end_exclusive": "2025-12-01",
+      "prediction_timestamp": "2026-11-16T21:21:26.115198+05:30",
+      "evidence_id": "121ba52cd2a019993875787e4214c4ab804dee9f4dc63683575fd9104ef1b227",
+      "units": "USD cents",
+      "estimate_type": "point forecast",
+      "member_id": 3,
+      "period": 21,
+      "forecast_cents": 84507,
+      "predicted_cost_usd": 845.07
+    },
+    "denied": {
+      "detail": {
+        "status": "denied",
+        "trace": [
+          "REQUEST_RECEIVED",
+          "AUTHORIZED",
+          "ESCALATED"
+        ],
+        "request_id": "offline-integrated-policy"
+      }
+    },
+    "stale": {
+      "detail": {
+        "status": "no_evidence",
+        "reason": "No approved snapshot matches the requested period or version",
+        "trace": [
+          "REQUEST_RECEIVED",
+          "AUTHORIZED",
+          "INTENT_CLASSIFIED",
+          "TOOLS_SELECTED",
+          "ESCALATED"
+        ],
+        "request_id": "offline-integrated-stale"
+      }
+    },
+    "tenant_2_drift_alert": {
+      "status": "ok",
+      "values": {
+        "count": 500,
+        "forecast_cents": 40307702
+      },
+      "evidence": {
+        "tenant_id": 2,
+        "model_version": "ridge-approved",
+        "as_of": "2025-09-01",
+        "horizon_end_exclusive": "2025-12-01",
+        "prediction_timestamp": "2026-11-16T21:21:26.115198+05:30",
+        "evidence_id": "121ba52cd2a019993875787e4214c4ab804dee9f4dc63683575fd9104ef1b227",
+        "units": "USD cents",
+        "estimate_type": "point forecast",
+        "validation_mae_usd": 354.1127210341018,
+        "validation_sha256": "163982ac07ff5b6f43a7b606f2b9fb44c8c2693ff5d4f66254235d60ca374995"
+      },
+      "tools": [
+        {
+          "name": "approved_forecast",
+          "source": "signed forecast snapshot",
+          "row_count": 500
+        },
+        {
+          "name": "model_monitor",
+          "source": "signed monitoring snapshot",
+          "model_version": "ridge-approved",
+          "report": {
+            "alert": true,
+            "features": {
+              "age_band": {
+                "alert": false,
+                "mean": 2.0,
+                "standardized_shift": 0.02208092028127604
+              },
+              "claim_count_6_months": {
+                "alert": false,
+                "mean": 7.59,
+                "standardized_shift": 0.4410898113114424
+              },
+              "high_needs": {
+                "alert": false,
+                "mean": 0.09,
+                "standardized_shift": 0.0022807017543859665
+              },
+              "paid_3_months_usd": {
+                "alert": true,
+                "mean": 789.1928600000005,
+                "standardized_shift": 1.207234931020674
+              },
+              "paid_6_months_usd": {
+                "alert": true,
+                "mean": 1975.697900000001,
+                "standardized_shift": 1.5500157396035406
+              }
+            },
+            "predictions": {
+              "p50": {
+                "alert": false,
+                "observed_usd": 809.5477043417661,
+                "relative_shift": 0.06324413449907115
+              },
+              "p95": {
+                "alert": false,
+                "observed_usd": 932.8780640403081,
+                "relative_shift": 0.0671638175759947
+              }
+            },
+            "rows": 500,
+            "tenant": 2
+          }
+        }
+      ],
+      "summary": "The approved forecast totals 40307702 USD cents across 500 members.",
+      "trace": [
+        "REQUEST_RECEIVED",
+        "AUTHORIZED",
+        "INTENT_CLASSIFIED",
+        "TOOLS_SELECTED",
+        "TOOLS_EXECUTED",
+        "RESULTS_VALIDATED",
+        "ANSWER_GENERATED",
+        "ANSWER_VERIFIED",
+        "COMPLETED"
+      ],
+      "request_id": "offline-drift-tenant-2"
+    }
+  },
+  "restart_replay_identical": true,
+  "qwen_http": {
+    "close": {
+      "status": "ok",
+      "evidence": {
+        "client_id": 1,
+        "month": "2025-11-01",
+        "view": "monthly_finance",
+        "cutoff": "2026-03-31"
+      },
+      "values": {
+        "paid_cents": 10259329,
+        "member_months": 400,
+        "pmpm_cents": 25648.3225,
+        "missing_benchmark_rows": 3,
+        "benchmark_cents": 31367359,
+        "expense_to_benchmark": null
+      },
+      "operation": "close",
+      "summary": "Revised paid claims totaled $102,593.29.",
+      "tools": [
+        {
+          "name": "financial_close",
+          "source": "monthly_finance"
+        }
+      ],
+      "trace": [
+        "REQUEST_RECEIVED",
+        "AUTHORIZED",
+        "INTENT_CLASSIFIED",
+        "TOOLS_SELECTED",
+        "TOOLS_EXECUTED",
+        "RESULTS_VALIDATED",
+        "ANSWER_GENERATED",
+        "ANSWER_VERIFIED",
+        "COMPLETED"
+      ],
+      "request_id": "qwen-integrated-close"
+    },
+    "restatement": {
+      "status": "ok",
+      "evidence": {
+        "client_id": 1,
+        "month": "2025-11-01",
+        "view": "restatement",
+        "cutoff": "2026-03-31",
+        "original_cutoff": "2026-01-15",
+        "bridge_source": "payment_event"
+      },
+      "values": {
+        "original_paid_cents": 8582363,
+        "revised_paid_cents": 10259329,
+        "difference_cents": 1676966,
+        "late_first_payments_cents": 1863218,
+        "adjustments_cents": -186252
+      },
+      "operation": "restatement",
+      "summary": "Revised paid claims changed by $16,769.66. Late first payments contributed $18,632.18 and adjustments contributed $-1,862.52.",
+      "tools": [
+        {
+          "name": "financial_close",
+          "source": "restatement"
+        },
+        {
+          "name": "late_correction",
+          "source": "payment_event / claim / month",
+          "tenant_id": 1,
+          "row_count": 1,
+          "example": {
+            "claim_id": 21886,
+            "line_no": 2,
+            "version": 2,
+            "received_date": "2026-02-14",
+            "net_effect_cents": -15884
+          }
+        }
+      ],
+      "trace": [
+        "REQUEST_RECEIVED",
+        "AUTHORIZED",
+        "INTENT_CLASSIFIED",
+        "TOOLS_SELECTED",
+        "TOOLS_EXECUTED",
+        "RESULTS_VALIDATED",
+        "ANSWER_GENERATED",
+        "ANSWER_VERIFIED",
+        "COMPLETED"
+      ],
+      "request_id": "qwen-integrated-restatement"
+    },
+    "forecast": {
+      "status": "ok",
+      "values": {
+        "count": 500,
+        "forecast_cents": 42771902
+      },
+      "evidence": {
+        "tenant_id": 1,
+        "model_version": "ridge-approved",
+        "as_of": "2025-09-01",
+        "horizon_end_exclusive": "2025-12-01",
+        "prediction_timestamp": "2026-11-16T21:21:26.115198+05:30",
+        "evidence_id": "121ba52cd2a019993875787e4214c4ab804dee9f4dc63683575fd9104ef1b227",
+        "units": "USD cents",
+        "estimate_type": "point forecast"
+      },
+      "tools": [
+        {
+          "name": "approved_forecast",
+          "source": "signed forecast snapshot",
+          "row_count": 500
+        }
+      ],
+      "summary": "The approved forecast totals 42771902 USD cents across 500 members.",
+      "trace": [
+        "REQUEST_RECEIVED",
+        "AUTHORIZED",
+        "INTENT_CLASSIFIED",
+        "TOOLS_SELECTED",
+        "TOOLS_EXECUTED",
+        "RESULTS_VALIDATED",
+        "ANSWER_GENERATED",
+        "ANSWER_VERIFIED",
+        "COMPLETED"
+      ],
+      "request_id": "qwen-integrated-forecast"
+    },
+    "variance_and_drift": {
+      "status": "ok",
+      "values": {
+        "count": 500,
+        "forecast_cents": 42771902,
+        "actual_cents": 39865655,
+        "prior_quarter_as_of_cents": 26361410,
+        "actual_minus_forecast_cents": -2906247,
+        "forecast_minus_prior_cents": 16410492
+      },
+      "evidence": {
+        "tenant_id": 1,
+        "model_version": "ridge-approved",
+        "as_of": "2025-09-01",
+        "horizon_end_exclusive": "2025-12-01",
+        "prediction_timestamp": "2026-11-16T21:21:26.115198+05:30",
+        "evidence_id": "121ba52cd2a019993875787e4214c4ab804dee9f4dc63683575fd9104ef1b227",
+        "units": "USD cents",
+        "estimate_type": "point forecast",
+        "validation_mae_usd": 354.1127210341018,
+        "validation_sha256": "163982ac07ff5b6f43a7b606f2b9fb44c8c2693ff5d4f66254235d60ca374995"
+      },
+      "tools": [
+        {
+          "name": "approved_forecast",
+          "source": "signed forecast snapshot",
+          "row_count": 500
+        },
+        {
+          "name": "matured_actual_and_prior",
+          "source": "payment_event / claim / month",
+          "row_count": 2998,
+          "actual_receipt_cutoff_exclusive": "2026-03-01",
+          "actual_cents": 39865655,
+          "prior_quarter_as_of_cents": 26361410
+        },
+        {
+          "name": "model_monitor",
+          "source": "signed monitoring snapshot",
+          "model_version": "ridge-approved",
+          "report": {
+            "alert": false,
+            "features": {
+              "age_band": {
+                "alert": false,
+                "mean": 2.0,
+                "standardized_shift": 0.02208092028127604
+              },
+              "claim_count_6_months": {
+                "alert": false,
+                "mean": 7.004,
+                "standardized_shift": 0.05969499180782311
+              },
+              "high_needs": {
+                "alert": false,
+                "mean": 0.092,
+                "standardized_shift": 0.004280701754385968
+              },
+              "paid_3_months_usd": {
+                "alert": false,
+                "mean": 527.2282000000005,
+                "standardized_shift": 0.11861055207276568
+              },
+              "paid_6_months_usd": {
+                "alert": false,
+                "mean": 1480.1537600000004,
+                "standardized_shift": 0.38628387297985706
+              }
+            },
+            "predictions": {
+              "p50": {
+                "alert": false,
+                "observed_usd": 856.2763733014799,
+                "relative_shift": 0.009172762916769304
+              },
+              "p95": {
+                "alert": false,
+                "observed_usd": 975.5190270253061,
+                "relative_shift": 0.024524768959572195
+              }
+            },
+            "rows": 500,
+            "tenant": 1
+          }
+        }
+      ],
+      "summary": "The approved forecast totals 42771902 USD cents across 500 members. Matured actuals total 39865655 USD cents. Actuals minus forecast is -2906247 USD cents. Forecast minus prior-quarter paid cost is 16410492 USD cents.",
+      "trace": [
+        "REQUEST_RECEIVED",
+        "AUTHORIZED",
+        "INTENT_CLASSIFIED",
+        "TOOLS_SELECTED",
+        "TOOLS_EXECUTED",
+        "RESULTS_VALIDATED",
+        "ANSWER_GENERATED",
+        "ANSWER_VERIFIED",
+        "COMPLETED"
+      ],
+      "request_id": "qwen-integrated-actuals"
+    },
+    "approved_prediction": {
+      "tenant_id": 1,
+      "model_version": "ridge-approved",
+      "as_of": "2025-09-01",
+      "horizon_end_exclusive": "2025-12-01",
+      "prediction_timestamp": "2026-11-16T21:21:26.115198+05:30",
+      "evidence_id": "121ba52cd2a019993875787e4214c4ab804dee9f4dc63683575fd9104ef1b227",
+      "units": "USD cents",
+      "estimate_type": "point forecast",
+      "member_id": 3,
+      "period": 21,
+      "forecast_cents": 84507,
+      "predicted_cost_usd": 845.07
+    },
+    "denied": {
+      "detail": {
+        "status": "denied",
+        "trace": [
+          "REQUEST_RECEIVED",
+          "AUTHORIZED",
+          "ESCALATED"
+        ],
+        "request_id": "qwen-integrated-policy"
+      }
+    },
+    "stale": {
+      "detail": {
+        "status": "no_evidence",
+        "reason": "No approved snapshot matches the requested period or version",
+        "trace": [
+          "REQUEST_RECEIVED",
+          "AUTHORIZED",
+          "INTENT_CLASSIFIED",
+          "TOOLS_SELECTED",
+          "ESCALATED"
+        ],
+        "request_id": "qwen-integrated-stale"
+      }
+    },
+    "tenant_2_drift_alert": {
+      "status": "ok",
+      "values": {
+        "count": 500,
+        "forecast_cents": 40307702
+      },
+      "evidence": {
+        "tenant_id": 2,
+        "model_version": "ridge-approved",
+        "as_of": "2025-09-01",
+        "horizon_end_exclusive": "2025-12-01",
+        "prediction_timestamp": "2026-11-16T21:21:26.115198+05:30",
+        "evidence_id": "121ba52cd2a019993875787e4214c4ab804dee9f4dc63683575fd9104ef1b227",
+        "units": "USD cents",
+        "estimate_type": "point forecast",
+        "validation_mae_usd": 354.1127210341018,
+        "validation_sha256": "163982ac07ff5b6f43a7b606f2b9fb44c8c2693ff5d4f66254235d60ca374995"
+      },
+      "tools": [
+        {
+          "name": "approved_forecast",
+          "source": "signed forecast snapshot",
+          "row_count": 500
+        },
+        {
+          "name": "model_monitor",
+          "source": "signed monitoring snapshot",
+          "model_version": "ridge-approved",
+          "report": {
+            "alert": true,
+            "features": {
+              "age_band": {
+                "alert": false,
+                "mean": 2.0,
+                "standardized_shift": 0.02208092028127604
+              },
+              "claim_count_6_months": {
+                "alert": false,
+                "mean": 7.59,
+                "standardized_shift": 0.4410898113114424
+              },
+              "high_needs": {
+                "alert": false,
+                "mean": 0.09,
+                "standardized_shift": 0.0022807017543859665
+              },
+              "paid_3_months_usd": {
+                "alert": true,
+                "mean": 789.1928600000005,
+                "standardized_shift": 1.207234931020674
+              },
+              "paid_6_months_usd": {
+                "alert": true,
+                "mean": 1975.697900000001,
+                "standardized_shift": 1.5500157396035406
+              }
+            },
+            "predictions": {
+              "p50": {
+                "alert": false,
+                "observed_usd": 809.5477043417661,
+                "relative_shift": 0.06324413449907115
+              },
+              "p95": {
+                "alert": false,
+                "observed_usd": 932.8780640403081,
+                "relative_shift": 0.0671638175759947
+              }
+            },
+            "rows": 500,
+            "tenant": 2
+          }
+        }
+      ],
+      "summary": "The approved forecast totals 40307702 USD cents across 500 members.",
+      "trace": [
+        "REQUEST_RECEIVED",
+        "AUTHORIZED",
+        "INTENT_CLASSIFIED",
+        "TOOLS_SELECTED",
+        "TOOLS_EXECUTED",
+        "RESULTS_VALIDATED",
+        "ANSWER_GENERATED",
+        "ANSWER_VERIFIED",
+        "COMPLETED"
+      ],
+      "request_id": "qwen-drift-tenant-2"
+    }
+  },
+  "qwen_runtime": {
+    "completed_llm_slots": 2,
+    "serving_mode": "local"
+  },
+  "prior_finance_gold_regression": {
+    "evaluation_version": "finance-gold-2",
+    "provider": "deterministic_rules",
+    "cases": 281,
+    "passed": 281,
+    "numeric_correct": 216,
+    "tool_correct": 216,
+    "evidence_correct": 216,
+    "financial_cases": 216,
+    "by_expected_status": {
+      "ambiguous": {
+        "cases": 1,
+        "passed": 1
+      },
+      "denied": {
+        "cases": 31,
+        "passed": 31
+      },
+      "no_evidence": {
+        "cases": 30,
+        "passed": 30
+      },
+      "ok": {
+        "cases": 216,
+        "passed": 216
+      },
+      "unsupported": {
+        "cases": 3,
+        "passed": 3
+      }
+    },
+    "failure_categories": {},
+    "p50_ms": 7.296400028280914,
+    "p95_ms": 19.507399993017316,
+    "reported_tokens": 0
+  },
+  "mode": "Local Docker, synthetic clients"
+}

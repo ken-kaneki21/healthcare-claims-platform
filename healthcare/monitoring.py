@@ -36,6 +36,11 @@ def evaluate(
     reports = []
     for tenant in np.unique(rows[:, 0]):
         population = rows[rows[:, 0] == tenant]
+        missing = (~np.isfinite(population[:, 2:-1])).sum(axis=0)
+        if np.any(missing):
+            raise ValueError(
+                "Monitoring population contains missing or non-finite features"
+            )
         features = population[:, 2:-1].mean(axis=0)
         change = np.abs(features - ref["feature_mean"]) / np.maximum(
             ref["feature_std"], 1.0
@@ -57,6 +62,7 @@ def evaluate(
             {
                 "tenant": int(tenant),
                 "rows": len(population),
+                "missing_feature_count": int(missing.sum()),
                 "features": {
                     name: {
                         "mean": float(mean),

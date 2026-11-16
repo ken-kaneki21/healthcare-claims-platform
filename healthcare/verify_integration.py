@@ -40,6 +40,15 @@ def verify(port: int, secret: str, prefix: str = "offline"):
             + restatement["values"]["adjustments_cents"]
         ):
             raise RuntimeError("Restatement bridge does not reconcile")
+        correction = restatement["tools"][-1]
+        if correction["name"] != "late_correction" or correction["row_count"] != 1:
+            raise RuntimeError("Expected a traceable late correction")
+        if (
+            not restatement["evidence"]["original_cutoff"]
+            < correction["example"]["received_date"]
+            <= restatement["evidence"]["cutoff"]
+        ):
+            raise RuntimeError("Correction arrived outside the restatement window")
         forecast = investigate(
             "integrated-forecast", "Show the approved prediction and model version"
         )

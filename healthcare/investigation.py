@@ -123,6 +123,34 @@ def verify_actuals(db, tenant, snapshot, members, actual):
             )
 
 
+def late_correction(db, tenant, evidence):
+    row = db.execute(
+        """
+        SELECT c.id,p.line_no,p.version,p.received_date,p.delta_cents
+        FROM payment_event p JOIN claim c ON c.id=p.claim_id
+        JOIN month d ON d.id=c.month_id
+        WHERE c.client_id=? AND d.starts=? AND p.received_date>? AND p.received_date<=?
+          AND p.version>1 AND p.delta_cents<>0
+        ORDER BY abs(p.delta_cents) DESC,c.id,p.line_no,p.version LIMIT 1
+        """,
+        (tenant, evidence["month"], evidence["original_cutoff"], evidence["cutoff"]),
+    ).fetchone()
+    return {
+        "name": "late_correction",
+        "source": "payment_event / claim / month",
+        "tenant_id": tenant,
+        "row_count": int(row is not None),
+        "example": dict(
+            zip(
+                ("claim_id", "line_no", "version", "received_date", "net_effect_cents"),
+                row,
+            )
+        )
+        if row is not None
+        else None,
+    }
+
+
 class Investigations:
     def __init__(self, claims_uri: str, checkpoints: Path, snapshot: dict, router):
         self.claims_uri = claims_uri
@@ -203,7 +231,18 @@ class Investigations:
         with closing(sqlite3.connect(self.claims_uri, uri=True, timeout=2)) as db:
             if not FORECAST.search(question):
                 historical = question_answer(db, tenant, question, self.router)
-                return {**historical, "tools": ["financial_close"]}
+                tools = [
+                    {
+                        "name": "financial_close",
+                        "source": historical.get("evidence", {}).get("view"),
+                    }
+                ]
+                if (
+                    historical.get("status") == "ok"
+                    and historical.get("operation") == "restatement"
+                ):
+                    tools.append(late_correction(db, tenant, historical["evidence"]))
+                return {**historical, "tools": tools}
             snapshot = self.snapshot
             deadline = monotonic() + 4
             db.set_progress_handler(lambda: int(monotonic() > deadline), 10000)
