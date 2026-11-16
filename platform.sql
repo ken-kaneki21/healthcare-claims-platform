@@ -2,6 +2,7 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE client(id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL, cost_factor INTEGER NOT NULL);
 INSERT INTO client VALUES (1,'Fictional North',100),(2,'Fictional South',118);
+INSERT INTO client SELECT 3,'Fictional West',91 FROM config WHERE tenants=3;
 CREATE TABLE provider(
     client_id INTEGER REFERENCES client(id), id INTEGER, region TEXT NOT NULL,
     PRIMARY KEY(client_id,id)
@@ -15,7 +16,7 @@ CREATE TABLE member(
     PRIMARY KEY(client_id,id), FOREIGN KEY(client_id,assigned_provider) REFERENCES provider(client_id,id)
 ) WITHOUT ROWID;
 INSERT INTO member
-SELECT 1+(id%2),id,(id*13+seed)%5,
+SELECT 1+(id%tenants),id,(id*13+seed)%5,
        CASE WHEN (id*37+seed)%11=0 THEN 'high_needs' ELSE 'standard' END,
        1+(id*73+seed)%250, 1+(id*437+seed*31)%15
 FROM numbers CROSS JOIN config WHERE id<=members;

@@ -8,7 +8,8 @@ from pathlib import Path
 
 
 def compare(
-    database: Path, output: Path, tracking: Path | None = None, torch_cpu: bool = False
+    database: Path, output: Path, tracking: Path | None = None, torch_cpu: bool = False,
+    shift_database: Path | None = None,
 ):
     import numpy as np
     from sklearn.ensemble import HistGradientBoostingRegressor
@@ -43,6 +44,14 @@ def compare(
             raise AssertionError("Member identity crosses a split")
     if any(len(rows) == 0 for rows in splits.values()):
         raise ValueError("Use a larger generated population")
+    if shift_database:
+        if shift_database.resolve() == database.resolve():
+            raise ValueError("Shift evaluation requires a separately generated database")
+        with closing(sqlite3.connect(f"{shift_database.resolve().as_uri()}?mode=ro", uri=True)) as db:
+            shifted = cohort(db, 21)
+        if len(shifted) == 0:
+            raise ValueError("Shift cohort is empty")
+        tests["independent_population"] = splits["independent_population"] = shifted
 
     models = {
         "ridge": make_pipeline(StandardScaler(), Ridge(alpha=100)),
@@ -52,6 +61,11 @@ def compare(
     }
     for model in models.values():
         model.fit(train[:, 2:-1], train[:, -1])
+    # Drop the three-month spend feature and measure the change on validation only.
+    feature_columns = [2, 3, 5, 6]
+    ablated = make_pipeline(StandardScaler(), Ridge(alpha=100))
+    ablated.fit(train[:, feature_columns], train[:, -1])
+    ablated_mae = float(np.abs(np.maximum(0, ablated.predict(valid[:, feature_columns]))-valid[:,-1]).mean())
     if torch_cpu:
         import torch
 
@@ -112,6 +126,29 @@ def compare(
         "splits": manifest,
         "metrics": results,
         "torch_cpu": torch_cpu,
+        "validation_ablation_without_recent_spend_mae_usd": ablated_mae,
+    }
+    scaler, fitted = (step[1] for step in models["ridge"].steps)
+    report["registry_bundle"] = {
+        "features": [
+            "age_band",
+            "high_needs",
+            "paid_3_months_usd",
+            "paid_6_months_usd",
+            "claim_count_6_months",
+        ],
+        "training_sha256": manifest["train"]["sha256"],
+        "validation_sha256": manifest["validation"]["sha256"],
+        "validation_mae_usd": results["validation"]["ridge"]["mae_usd"],
+        "baseline_validation_mae_usd": results["validation"]["prior_quarter"][
+            "mae_usd"
+        ],
+        "artifact": {
+            "mean": scaler.mean_.tolist(),
+            "scale": scaler.scale_.tolist(),
+            "coefficients": fitted.coef_.tolist(),
+            "intercept": float(fitted.intercept_),
+        },
     }
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

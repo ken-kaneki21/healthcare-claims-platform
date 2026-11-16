@@ -21,6 +21,7 @@ CONTRACTS = {
         "net_paid_cents",
     ),
 }
+CLIENT_SCHEMAS = {1: 1, 2: 1, 3: 2}
 DDL = """
 CREATE TABLE IF NOT EXISTS batch(
     tenant INTEGER, source TEXT, watermark INTEGER, manifest TEXT NOT NULL,
@@ -31,6 +32,11 @@ CREATE TABLE IF NOT EXISTS delivery(
     received_date TEXT NOT NULL, replacement_cents INTEGER NOT NULL,
     source TEXT NOT NULL, watermark INTEGER NOT NULL,
     PRIMARY KEY(tenant,claim_id,line_no,version)
+);
+CREATE TABLE IF NOT EXISTS quarantine(
+    id INTEGER PRIMARY KEY, tenant INTEGER, source TEXT, watermark INTEGER,
+    payload_sha256 TEXT NOT NULL, reason TEXT NOT NULL,
+    rejected_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 """
 
@@ -49,6 +55,55 @@ class Manifest:
 
 
 def load(
+    db: sqlite3.Connection,
+    manifest: Manifest,
+    payload: bytes,
+    *,
+    reference: sqlite3.Connection | None = None,
+    interrupt_after: int | None = None,
+):
+    db.executescript(DDL)
+    try:
+        return _load(
+            db, manifest, payload, reference=reference, interrupt_after=interrupt_after
+        )
+    except (ValueError, csv.Error) as error:
+        # Store the failure after rollback, without copying source rows into diagnostics.
+        reason = (
+            error.args[0]
+            if error.args
+            and error.args[0]
+            in {
+                "Invalid tenant, source, or watermark",
+                "Unknown source schema version",
+                "Payload checksum mismatch",
+                "Period must be the first day of a month",
+                "Manifest timestamps must be ordered and timezone-aware",
+                "Unexpected source columns",
+                "Replay manifest differs from committed batch",
+                "Missing or out-of-order watermark",
+                "Invalid claim key or replacement amount",
+                "Claim reference is outside the tenant or absent",
+                "Same claim version has conflicting payloads",
+                "Record count does not match manifest",
+            }
+            else "Invalid CSV field, encoding, or timestamp"
+        )
+        with db:
+            db.execute(
+                "INSERT INTO quarantine(tenant,source,watermark,payload_sha256,reason) VALUES (?,?,?,?,?)",
+                (
+                    manifest.tenant,
+                    manifest.source,
+                    manifest.watermark,
+                    hashlib.sha256(payload).hexdigest(),
+                    reason,
+                ),
+            )
+        raise
+
+
+def _load(
     db,
     manifest: Manifest,
     payload: bytes,
@@ -74,7 +129,6 @@ def load(
     rows = csv.reader(io.StringIO(payload.decode("utf-8"), newline=""), strict=True)
     if tuple(next(rows, ())) != columns:
         raise ValueError("Unexpected source columns")
-    db.executescript(DDL)
     key = (manifest.tenant, manifest.source, manifest.watermark)
     serialized = json.dumps(asdict(manifest), sort_keys=True)
     with db:
@@ -160,6 +214,9 @@ def replay_feed(
     reference_path: Path, journal: Path, tenant: int, batch_size: int = 10_000
 ):
     """Read generated delivery pages in source-ID order and commit each manifest atomically."""
+    schema = CLIENT_SCHEMAS.get(tenant)
+    if schema is None:
+        raise ValueError("Unknown fictional tenant")
     if not 1 <= batch_size <= 50_000:
         raise ValueError("Batch size must be between 1 and 50,000")
     journal.parent.mkdir(parents=True, exist_ok=True)
@@ -186,14 +243,14 @@ def replay_feed(
             last_id = rows[-1][0]
             stream = io.StringIO(newline="")
             writer = csv.writer(stream)
-            writer.writerow(FIELDS)
+            writer.writerow(CONTRACTS[schema])
             writer.writerows(row[1:] for row in rows)
             payload = stream.getvalue().encode()
             manifest = Manifest(
                 tenant,
                 f"synthetic-deliveries-{batch_size}",
                 watermark,
-                1,
+                schema,
                 "2026-03-01",
                 cutoff,
                 cutoff,

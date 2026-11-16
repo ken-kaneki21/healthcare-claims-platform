@@ -12,7 +12,8 @@ CLOSES = (("original", "2026-01-15"), ("revised", "2026-03-31"))
 SCHEMA_PATH = Path(__file__).with_name("platform.sql")
 
 
-def materialize_closes(db):
+def materialize_closes(db, *, from_journal=False):
+    delivery_relation = "approved_delivery" if from_journal else "claim_delivery"
     db.executescript("""
         CREATE TABLE close_run(id TEXT PRIMARY KEY, cutoff TEXT NOT NULL, rules_version TEXT NOT NULL);
         CREATE TABLE close_fact(
@@ -25,11 +26,11 @@ def materialize_closes(db):
     for run, cutoff in CLOSES:
         started = perf_counter()
         db.execute("INSERT INTO close_run VALUES (?, ?, 'synthetic-1')", (run, cutoff))
-        db.execute("""
+        db.execute(f"""
             CREATE TEMP TABLE observed AS
             WITH versions AS (
                 SELECT claim_id,line_no,version,MIN(replacement_cents) AS paid
-                FROM claim_delivery WHERE received_date<=?
+                FROM {delivery_relation} WHERE received_date<=?
                 GROUP BY claim_id,line_no,version
                 HAVING MIN(replacement_cents)=MAX(replacement_cents)
             ), latest AS (
@@ -95,7 +96,9 @@ def materialize_closes(db):
     return checks
 
 
-def build(database, members, seed):
+def build(database, members, seed, tenants=2):
+    if tenants not in (2, 3) or members < tenants:
+        raise ValueError("Use two or three tenants and at least one member per tenant")
     started = perf_counter()
     database.parent.mkdir(parents=True, exist_ok=True)
     if database.exists():
@@ -104,10 +107,10 @@ def build(database, members, seed):
         work = Path(temp) / "claims.sqlite"
         with closing(sqlite3.connect(work)) as db:
             db.executescript("""
-                CREATE TEMP TABLE config(members INTEGER, months INTEGER, seed INTEGER);
+                CREATE TEMP TABLE config(members INTEGER, months INTEGER, seed INTEGER, tenants INTEGER);
                 CREATE TEMP TABLE numbers(id INTEGER PRIMARY KEY);
             """)
-            db.execute("INSERT INTO config VALUES (?,24,?)", (members, seed))
+            db.execute("INSERT INTO config VALUES (?,24,?,?)", (members, seed, tenants))
             db.executemany("INSERT INTO numbers VALUES (?)", ((n,) for n in range(1,max(members,250)+1)))
             db.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
             checks = materialize_closes(db)
@@ -127,7 +130,8 @@ if __name__ == "__main__":
     parser.add_argument("--database", type=Path, required=True)
     parser.add_argument("--members", type=int, default=50000)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--tenants", type=int, choices=(2, 3), default=2)
     args = parser.parse_args()
     if not 2<=args.members<=1000000 or not 0<=args.seed<=1000000:
         parser.error("members must be 2–1,000,000 and seed must be 0–1,000,000")
-    print(json.dumps(build(args.database,args.members,args.seed),indent=2))
+    print(json.dumps(build(args.database,args.members,args.seed,args.tenants),indent=2))
