@@ -55,6 +55,7 @@ def main():
             "rollback-model",
             "predict-model",
             "monitor-model",
+            "publish-forecast",
             "release-check",
         ),
     )
@@ -69,6 +70,7 @@ def main():
     parser.add_argument("--model-report", type=Path)
     parser.add_argument("--period", type=int, choices=range(7, 25), default=21)
     parser.add_argument("--torch-cpu", action="store_true")
+    parser.add_argument("--strict-timeline", action="store_true")
     parser.add_argument("--feature-threshold", type=float, default=0.75)
     parser.add_argument("--prediction-threshold", type=float, default=0.25)
     parser.add_argument("--shift-database", type=Path)
@@ -96,7 +98,12 @@ def main():
         from healthcare.experiments import compare
 
         report = compare(
-            args.database, args.out, args.tracking, args.torch_cpu, args.shift_database
+            args.database,
+            args.out,
+            args.tracking,
+            args.torch_cpu,
+            args.shift_database,
+            strict_timeline=args.strict_timeline,
         )
     elif args.command == "ingest":
         if args.manifest is None or args.csv is None:
@@ -116,6 +123,18 @@ def main():
         if args.reference is None or args.journal is None:
             parser.error("journal-close requires --reference and --journal")
         report = rebuild(args.reference, args.journal, args.database)
+    elif args.command == "publish-forecast":
+        from healthcare.forecast_snapshot import publish
+
+        if args.reference is None:
+            parser.error("publish-forecast requires --reference")
+        report = publish(
+            args.reference,
+            args.database,
+            args.period,
+            args.out,
+            os.environ["CLAIMS_REGISTRY_SECRET"],
+        )
     elif args.command in (
         "register-model",
         "promote-model",

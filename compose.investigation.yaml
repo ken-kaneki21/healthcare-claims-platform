@@ -1,0 +1,12 @@
+services:
+  api:
+    environment:
+      CLAIMS_REGISTRY_SECRET: ${CLAIMS_REGISTRY_SECRET:?Set the forecast verification secret}
+      CLAIMS_FORECAST_SNAPSHOT: /data/forecast.json
+      CLAIMS_INVESTIGATION_CHECKPOINTS: /var/lib/claims-investigation/checkpoints.sqlite
+    volumes:
+      - ${CLAIMS_INTEGRATION_ROOT:-./out/integrated}/close.sqlite:/data/claims.sqlite:ro
+      - ${CLAIMS_INTEGRATION_ROOT:-./out/integrated}/forecast.json:/data/forecast.json:ro
+      - investigation-state:/var/lib/claims-investigation
+volumes:
+  investigation-state:

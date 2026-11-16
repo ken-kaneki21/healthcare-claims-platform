@@ -86,6 +86,12 @@ class Question(BaseModel):
     question: str = Field(min_length=1, max_length=500)
 
 
+class InvestigationRequest(Question):
+    request_id: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,64}$")
+    period: int | None = Field(default=None, ge=7, le=24)
+    model_version: str | None = Field(default=None, max_length=80)
+
+
 def create_app(
     database: Path,
     secret: str | None,
@@ -94,6 +100,9 @@ def create_app(
     requests_per_minute: int = 120,
     access_token_identity: Callable[[str], int] | None = None,
     question_router: Callable[[str], dict] = rules,
+    forecast_path: Path | None = None,
+    forecast_secret: str | None = None,
+    checkpoint_path: Path | None = None,
 ) -> FastAPI:
     if access_token_identity is None and (secret is None or len(secret.encode()) < 32):
         raise ValueError("CLAIMS_DEMO_SECRET must contain at least 32 bytes")
@@ -104,6 +113,22 @@ def create_app(
     lock = Lock()
     read_uri = f"{database.resolve().as_uri()}?mode=ro"
     predictions_by_key: dict[tuple[int, int, int], dict[str, str]] = {}
+    forecast = None
+    investigation = None
+    if forecast_path is not None:
+        from healthcare.forecast_snapshot import load
+        from healthcare.investigation import Investigations
+
+        if forecast_secret is None or checkpoint_path is None:
+            raise ValueError(
+                "Forecast serving requires a verification secret and checkpoint path"
+            )
+        if checkpoint_path.resolve() in (database.resolve(), forecast_path.resolve()):
+            raise ValueError("Checkpoint path must be separate from served artifacts")
+        forecast = load(forecast_path, database, forecast_secret)
+        investigation = Investigations(
+            read_uri, checkpoint_path, forecast, question_router
+        )
     if predictions is not None:
         with predictions.open(newline="", encoding="utf-8") as stream:
             reader = csv.DictReader(stream)
@@ -227,6 +252,12 @@ def create_app(
 
     @app.get("/models")
     def models(_tenant: Annotated[int, Depends(identity)]):
+        if forecast is not None:
+            return {
+                "versions": [forecast["model_version"]]
+                if forecast["by_tenant"][_tenant]
+                else []
+            }
         return {
             "versions": sorted(
                 {
@@ -246,6 +277,19 @@ def create_app(
     ):
         if tenant_id != tenant:
             raise HTTPException(403, "Tenant outside token scope")
+        if forecast is not None:
+            from healthcare.investigation import metadata
+
+            members = forecast["by_tenant"][tenant]
+            if period != forecast["period"] or member_id not in members:
+                raise HTTPException(404, "No matching approved forecast")
+            return {
+                **metadata(forecast, tenant),
+                "member_id": member_id,
+                "period": period,
+                "forecast_cents": members[member_id],
+                "predicted_cost_usd": members[member_id] / 100,
+            }
         row = predictions_by_key.get((tenant, member_id, period))
         if row is None:
             raise HTTPException(404, "No matching batch prediction")
@@ -256,11 +300,66 @@ def create_app(
             "predicted_cost_usd": float(row["predicted_cost_usd"]),
         }
 
+    @app.get("/forecasts/{period}")
+    def forecasts(
+        period: int,
+        tenant: Annotated[int, Depends(identity)],
+        offset: int = 0,
+        limit: int = 50,
+    ):
+        from itertools import islice
+
+        from healthcare.investigation import metadata
+
+        if not 0 <= offset <= 1000000 or not 1 <= limit <= 100:
+            raise HTTPException(422, "Invalid page bounds")
+        if forecast is None or period != forecast["period"]:
+            raise HTTPException(404, "No matching approved forecast")
+        members = forecast["by_tenant"][tenant]
+        return {
+            **metadata(forecast, tenant),
+            "row_count": len(members),
+            "predictions": [
+                {"member_id": member, "forecast_cents": cents}
+                for member, cents in islice(members.items(), offset, offset + limit)
+            ],
+        }
+
+    @app.post("/investigations")
+    def investigate(
+        request: InvestigationRequest, tenant: Annotated[int, Depends(identity)]
+    ):
+        if investigation is None:
+            raise HTTPException(404, "No approved investigation snapshot")
+        try:
+            result = investigation.run(
+                tenant,
+                request.request_id,
+                request.question,
+                request.period,
+                request.model_version,
+            )
+        except (httpx.HTTPError, sqlite3.OperationalError) as error:
+            raise HTTPException(503, "Investigation temporarily unavailable") from error
+        status = {
+            "denied": 403,
+            "no_evidence": 404,
+            "ambiguous": 422,
+            "unsupported": 422,
+            "retryable": 503,
+            "conflict": 409,
+        }.get(result["status"])
+        if status:
+            raise HTTPException(status, result)
+        return result
+
     return app
 
 
 def from_environment():
     path = os.getenv("CLAIMS_PREDICTIONS")
+    forecast = os.getenv("CLAIMS_FORECAST_SNAPSHOT")
+    checkpoints = os.getenv("CLAIMS_INVESTIGATION_CHECKPOINTS")
     mode = os.getenv("CLAIMS_AUTH_MODE", "demo")
     token_identity = None
     secret = None
@@ -297,4 +396,7 @@ def from_environment():
         requests_per_minute=int(os.getenv("CLAIMS_REQUESTS_PER_MINUTE", "120")),
         access_token_identity=token_identity,
         question_router=route,
+        forecast_path=Path(forecast) if forecast else None,
+        checkpoint_path=Path(checkpoints) if checkpoints else None,
+        forecast_secret=os.getenv("CLAIMS_REGISTRY_SECRET") if forecast else None,
     )
