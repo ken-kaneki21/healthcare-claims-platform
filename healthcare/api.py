@@ -7,20 +7,23 @@ import hashlib
 import hmac
 import json
 import logging
+import math
 import os
 import sqlite3
 import time
 import uuid
 from collections import deque
+from collections.abc import Callable
 from contextlib import closing
 from pathlib import Path
 from threading import Lock
 from typing import Annotated, Literal
 
+import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
-from healthcare.agent import MONTH, question_answer
+from healthcare.agent import MONTH, question_answer, rules
 
 LOGGER = logging.getLogger("uvicorn.error")
 
@@ -85,12 +88,14 @@ class Question(BaseModel):
 
 def create_app(
     database: Path,
-    secret: str,
+    secret: str | None,
     predictions: Path | None = None,
     *,
     requests_per_minute: int = 120,
+    access_token_identity: Callable[[str], int] | None = None,
+    question_router: Callable[[str], dict] = rules,
 ) -> FastAPI:
-    if len(secret.encode()) < 32:
+    if access_token_identity is None and (secret is None or len(secret.encode()) < 32):
         raise ValueError("CLAIMS_DEMO_SECRET must contain at least 32 bytes")
     if not 1 <= requests_per_minute <= 10_000:
         raise ValueError("Requests per minute must be 1–10,000")
@@ -101,15 +106,45 @@ def create_app(
     predictions_by_key: dict[tuple[int, int, int], dict[str, str]] = {}
     if predictions is not None:
         with predictions.open(newline="", encoding="utf-8") as stream:
-            for row in csv.DictReader(stream):
-                predictions_by_key[
-                    int(row["client_id"]), int(row["member_id"]), int(row["period"])
-                ] = row
+            reader = csv.DictReader(stream)
+            if reader.fieldnames != [
+                "client_id",
+                "member_id",
+                "period",
+                "model_version",
+                "predicted_cost_usd",
+            ]:
+                raise ValueError("Invalid prediction columns")
+            for row in reader:
+                client, member, period = (
+                    int(row[name]) for name in ("client_id", "member_id", "period")
+                )
+                key = client, member, period
+                cost = float(row["predicted_cost_usd"])
+                if (
+                    client not in requests
+                    or member < 1
+                    or not 7 <= period <= 24
+                    or not row["model_version"]
+                    or not math.isfinite(cost)
+                    or cost < 0
+                    or key in predictions_by_key
+                ):
+                    raise ValueError("Invalid prediction row")
+                predictions_by_key[key] = row
 
     def identity(authorization: Annotated[str | None, Header()] = None) -> int:
         if not authorization or not authorization.startswith("Bearer "):
             raise HTTPException(401, "Bearer token required")
-        tenant = verify_token(secret, authorization[7:])
+        token = authorization[7:]
+        if access_token_identity is None:
+            assert secret is not None
+            tenant = verify_token(secret, token)
+        else:
+            try:
+                tenant = access_token_identity(token)
+            except ValueError as error:
+                raise HTTPException(401, "Invalid access token") from error
         with lock:
             now = time.monotonic()
             recent = requests[tenant]
@@ -155,10 +190,14 @@ def create_app(
             raise HTTPException(503, "Claims database unavailable") from error
         return {"status": "ready"}
 
-    @app.post("/finance/questions")
-    def finance(request: Question, tenant: Annotated[int, Depends(identity)]):
-        with closing(sqlite3.connect(read_uri, uri=True, timeout=2)) as db:
-            result = question_answer(db, tenant, request.question)
+    def finance_response(question: str, tenant: int, route):
+        try:
+            with closing(sqlite3.connect(read_uri, uri=True, timeout=2)) as db:
+                result = question_answer(db, tenant, question, route)
+        except (httpx.HTTPError, sqlite3.Error) as error:
+            raise HTTPException(
+                503, "Finance service temporarily unavailable"
+            ) from error
         status = {
             "denied": 403,
             "no_evidence": 404,
@@ -168,6 +207,10 @@ def create_app(
         if status:
             raise HTTPException(status, result["status"])
         return result
+
+    @app.post("/finance/questions")
+    def finance(request: Question, tenant: Annotated[int, Depends(identity)]):
+        return finance_response(request.question, tenant, question_router)
 
     @app.get("/finance/{tenant_id}/{operation}/{month}")
     def finance_tool(
@@ -180,7 +223,7 @@ def create_app(
             raise HTTPException(403, "Tenant outside token scope")
         if not MONTH.fullmatch(month):
             raise HTTPException(422, "Use a month in YYYY-MM format")
-        return finance(Question(question=f"{operation} for {month}"), tenant)
+        return finance_response(f"{operation} for {month}", tenant, rules)
 
     @app.get("/models")
     def models(_tenant: Annotated[int, Depends(identity)]):
@@ -218,9 +261,48 @@ def create_app(
 
 def from_environment():
     path = os.getenv("CLAIMS_PREDICTIONS")
+    mode = os.getenv("CLAIMS_AUTH_MODE", "demo")
+    token_identity = None
+    secret = None
+    if mode == "demo":
+        secret = os.environ["CLAIMS_DEMO_SECRET"]
+    elif mode == "oidc":
+        from healthcare.identity import OidcIdentity
+
+        token_identity = OidcIdentity(
+            os.environ["CLAIMS_OIDC_ISSUER"],
+            os.environ["CLAIMS_OIDC_AUDIENCE"],
+            os.environ["CLAIMS_OIDC_JWKS_URL"],
+        )
+    else:
+        raise ValueError("CLAIMS_AUTH_MODE must be demo or oidc")
+    route = rules
+    if os.getenv("CLAIMS_ENABLE_BILLED_LLM") == "1":
+        from urllib.parse import urlsplit
+
+        from healthcare.agent import provider_router
+
+        endpoint = os.environ["CLAIMS_LLM_ENDPOINT"]
+        parsed = urlsplit(endpoint)
+        if (
+            parsed.scheme != "https"
+            or not parsed.hostname
+            or parsed.username is not None
+        ):
+            raise ValueError("Configure an HTTPS LLM endpoint")
+        api_key = os.environ["CLAIMS_LLM_API_KEY"]
+        model = os.environ["CLAIMS_LLM_MODEL"]
+
+        def route(question):
+            with httpx.Client() as client:
+                interpret, _ = provider_router(client, endpoint, api_key, model)
+                return interpret(question)
+
     return create_app(
         Path(os.environ["CLAIMS_DATABASE"]),
-        os.environ["CLAIMS_DEMO_SECRET"],
+        secret,
         Path(path) if path else None,
         requests_per_minute=int(os.getenv("CLAIMS_REQUESTS_PER_MINUTE", "120")),
+        access_token_identity=token_identity,
+        question_router=route,
     )

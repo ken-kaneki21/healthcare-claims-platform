@@ -31,3 +31,5 @@ The current schema is illustrative. Future CMS-shaped ingestion should pin a pub
 - **Evidence for each release.** Store test reports and benchmark metadata with the code revision, seed, cutoff, dataset size, workload and environment. Compare any AI explanation with a rules-only baseline. An office pilot has its own measurement record and approval.
 
 Next implementation milestone is a replayable batch loader whose manifest shows which delivery affected which report period. Cloud deployment remains a later milestone.
+
+V2 adds effective-dated fictional client policies, authenticated finance APIs and locally monitored batch models. The dated rules and all evidence use generated data. The hosted LLM adapter and cloud deployment are optional verification environments.

@@ -128,3 +128,12 @@ Use a fresh database path when changing the seed or population size. The cutoff 
 With seed 42 and 1,000 synthetic members, the clean run reconciled 1,749 member-months from 5,762 deliveries representing 5,238 unique claim versions. Repeating the clean run produced the same files. Both fault drills failed as intended. One found two offsetting errors and the other found a missing member-month with zero paid expense. The total paid remained equal in both cases.
 
 The next release should add a source manifest and incremental extraction. See [project scope](PROJECT-SCOPE.md) for the release order.
+
+## Run the V2 verification
+
+`python -m healthcare.scale --members 1000 --tenants 3 --out out/local-check` creates a fresh synthetic fixture, replays the journal, rebuilds the closes and checks row-level parity. Use `--members 50000` with a fresh output directory for the full benchmark. The portfolio covers data ingestion, month-end finance, model evaluation, local model operations and a tenant-bound finance API.
+
+- [Architecture](docs/architecture.md)
+- [Deployment and identity](docs/deployment.md)
+- [Engineering case studies](docs/case-studies.md)
+- [Verification and release status](docs/IMPLEMENTATION_STATUS.md)
