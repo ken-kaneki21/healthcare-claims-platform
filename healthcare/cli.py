@@ -57,6 +57,7 @@ def main():
             "promote-model",
             "rollback-model",
             "predict-model",
+            "monitor-model",
             "release-check",
         ),
     )
@@ -71,6 +72,8 @@ def main():
     parser.add_argument("--model-report", type=Path)
     parser.add_argument("--period", type=int, choices=range(7, 25), default=21)
     parser.add_argument("--torch-cpu", action="store_true")
+    parser.add_argument("--feature-threshold", type=float, default=0.75)
+    parser.add_argument("--prediction-threshold", type=float, default=0.25)
     parser.add_argument("--shift-database", type=Path)
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--csv", type=Path)
@@ -93,7 +96,9 @@ def main():
     elif args.command == "train":
         from healthcare.experiments import compare
 
-        report = compare(args.database, args.out, args.tracking, args.torch_cpu, args.shift_database)
+        report = compare(
+            args.database, args.out, args.tracking, args.torch_cpu, args.shift_database
+        )
     elif args.command == "ingest":
         if args.manifest is None or args.csv is None:
             parser.error("ingest requires --manifest and --csv")
@@ -117,6 +122,7 @@ def main():
         "promote-model",
         "rollback-model",
         "predict-model",
+        "monitor-model",
     ):
         from healthcare.registry import champion, register, transition
 
@@ -131,21 +137,28 @@ def main():
                 ]
                 register(db, args.version, bundle, secret)
                 report = {"registered": args.version}
+            elif args.command == "monitor-model":
+                from healthcare.monitoring import evaluate as monitor
+
+                if args.reference is None:
+                    parser.error("monitor-model requires --reference")
+                report = monitor(
+                    args.reference,
+                    args.period,
+                    champion(db, secret),
+                    feature_threshold=args.feature_threshold,
+                    prediction_threshold=args.prediction_threshold,
+                )
             elif args.command == "predict-model":
                 from tempfile import TemporaryDirectory
 
+                from healthcare.experiments import FEATURES
                 from train_cost import predict
 
                 if args.reference is None:
                     parser.error("predict-model requires --reference")
                 bundle = champion(db, secret)
-                if bundle["features"] != [
-                    "age_band",
-                    "high_needs",
-                    "paid_3_months_usd",
-                    "paid_6_months_usd",
-                    "claim_count_6_months",
-                ]:
+                if bundle["features"] != FEATURES:
                     raise ValueError(
                         "Promoted model does not match the batch feature contract"
                     )
@@ -189,7 +202,13 @@ def main():
         )
         return
     print(json.dumps(report, indent=2))
-    if args.command in ("smoke", "full-build", "benchmark", "eval-agent"):
+    if args.command in (
+        "smoke",
+        "full-build",
+        "benchmark",
+        "eval-agent",
+        "monitor-model",
+    ):
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
 

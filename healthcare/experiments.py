@@ -6,9 +6,20 @@ import sqlite3
 from contextlib import closing
 from pathlib import Path
 
+FEATURES = [
+    "age_band",
+    "high_needs",
+    "paid_3_months_usd",
+    "paid_6_months_usd",
+    "claim_count_6_months",
+]
+
 
 def compare(
-    database: Path, output: Path, tracking: Path | None = None, torch_cpu: bool = False,
+    database: Path,
+    output: Path,
+    tracking: Path | None = None,
+    torch_cpu: bool = False,
     shift_database: Path | None = None,
 ):
     import numpy as np
@@ -46,26 +57,57 @@ def compare(
         raise ValueError("Use a larger generated population")
     if shift_database:
         if shift_database.resolve() == database.resolve():
-            raise ValueError("Shift evaluation requires a separately generated database")
-        with closing(sqlite3.connect(f"{shift_database.resolve().as_uri()}?mode=ro", uri=True)) as db:
+            raise ValueError(
+                "Shift evaluation requires a separately generated database"
+            )
+        with closing(
+            sqlite3.connect(f"{shift_database.resolve().as_uri()}?mode=ro", uri=True)
+        ) as db:
             shifted = cohort(db, 21)
         if len(shifted) == 0:
             raise ValueError("Shift cohort is empty")
         tests["independent_population"] = splits["independent_population"] = shifted
 
-    models = {
-        "ridge": make_pipeline(StandardScaler(), Ridge(alpha=100)),
-        "hist_gradient_boosting": HistGradientBoostingRegressor(
-            max_iter=80, max_leaf_nodes=15, l2_regularization=10, random_state=42
-        ),
+    candidates = {
+        "ridge": [
+            (alpha, make_pipeline(StandardScaler(), Ridge(alpha=alpha)))
+            for alpha in (1, 10, 100, 1000)
+        ],
+        "hist_gradient_boosting": [
+            (
+                leaves,
+                HistGradientBoostingRegressor(
+                    max_iter=80,
+                    max_leaf_nodes=leaves,
+                    l2_regularization=10,
+                    random_state=42,
+                ),
+            )
+            for leaves in (7, 15, 31)
+        ],
     }
-    for model in models.values():
-        model.fit(train[:, 2:-1], train[:, -1])
+    models = {}
+    search = {}
+    selected = {}
+    for name, choices in candidates.items():
+        scores = {}
+        for value, model in choices:
+            model.fit(train[:, 2:-1], train[:, -1])
+            prediction = np.maximum(0, model.predict(valid[:, 2:-1]))
+            scores[value] = float(np.abs(prediction - valid[:, -1]).mean())
+        best = min(scores, key=scores.__getitem__)
+        models[name] = dict(choices)[best]
+        search[name] = scores
+        selected[name] = best
     # Drop the three-month spend feature and measure the change on validation only.
     feature_columns = [2, 3, 5, 6]
-    ablated = make_pipeline(StandardScaler(), Ridge(alpha=100))
+    ablated = make_pipeline(StandardScaler(), Ridge(alpha=selected["ridge"]))
     ablated.fit(train[:, feature_columns], train[:, -1])
-    ablated_mae = float(np.abs(np.maximum(0, ablated.predict(valid[:, feature_columns]))-valid[:,-1]).mean())
+    ablated_mae = float(
+        np.abs(
+            np.maximum(0, ablated.predict(valid[:, feature_columns])) - valid[:, -1]
+        ).mean()
+    )
     if torch_cpu:
         import torch
 
@@ -113,13 +155,23 @@ def compare(
             results[name][model_name] = {
                 "mae_usd": float(np.abs(error).mean()),
                 "rmse_usd": float(np.sqrt((error**2).mean())),
+                "p95_absolute_error_usd": float(np.quantile(np.abs(error), 0.95)),
+                "mean_error_usd": float(error.mean()),
             }
+            for label, mask in (
+                ("standard", rows[:, 3] == 0),
+                ("high_needs", rows[:, 3] == 1),
+            ):
+                if np.any(mask):
+                    results[name][model_name][f"{label}_mae_usd"] = float(
+                        np.abs(error[mask]).mean()
+                    )
     manifest = {
         name: {"rows": len(data), "sha256": hashlib.sha256(data.tobytes()).hexdigest()}
         for name, data in splits.items()
     }
     report = {
-        "experiment_version": "v2-cost-comparison-1",
+        "experiment_version": "v2-cost-comparison-2",
         "seed": 42,
         "target": "next three service months, 90-day arrival completion",
         "periods": {"train": [7, 10, 13], "validation": 17, "test": 21},
@@ -127,22 +179,31 @@ def compare(
         "metrics": results,
         "torch_cpu": torch_cpu,
         "validation_ablation_without_recent_spend_mae_usd": ablated_mae,
+        "validation_search_mae_usd": search,
+        "selected_parameters": {
+            "ridge_alpha": selected["ridge"],
+            "boosting_max_leaf_nodes": selected["hist_gradient_boosting"],
+        },
     }
     scaler, fitted = (step[1] for step in models["ridge"].steps)
+    report["ridge_standardized_coefficients"] = dict(
+        zip(FEATURES, fitted.coef_.tolist())
+    )
+    reference_predictions = np.maximum(0, models["ridge"].predict(valid[:, 2:-1]))
     report["registry_bundle"] = {
-        "features": [
-            "age_band",
-            "high_needs",
-            "paid_3_months_usd",
-            "paid_6_months_usd",
-            "claim_count_6_months",
-        ],
+        "features": FEATURES,
         "training_sha256": manifest["train"]["sha256"],
         "validation_sha256": manifest["validation"]["sha256"],
         "validation_mae_usd": results["validation"]["ridge"]["mae_usd"],
         "baseline_validation_mae_usd": results["validation"]["prior_quarter"][
             "mae_usd"
         ],
+        "monitor_reference": {
+            "feature_mean": valid[:, 2:-1].mean(axis=0).tolist(),
+            "feature_std": valid[:, 2:-1].std(axis=0).tolist(),
+            "prediction_p50": float(np.median(reference_predictions)),
+            "prediction_p95": float(np.quantile(reference_predictions, 0.95)),
+        },
         "artifact": {
             "mean": scaler.mean_.tolist(),
             "scale": scaler.scale_.tolist(),

@@ -26,7 +26,7 @@ def signature(payload: str, secret: str):
 def register(db: sqlite3.Connection, version: str, bundle: dict, secret: str):
     if not re.fullmatch(r"[a-zA-Z0-9._-]{1,80}", version):
         raise ValueError("Invalid model version")
-    required = (
+    required: tuple[str, ...] = (
         "features",
         "training_sha256",
         "validation_sha256",
@@ -66,6 +66,30 @@ def register(db: sqlite3.Connection, version: str, bundle: dict, secret: str):
         artifact.get("intercept", math.inf)
     ):
         raise ValueError("Invalid model scale or intercept")
+    if "monitor_reference" in bundle:
+        reference = bundle["monitor_reference"]
+        for key in ("feature_mean", "feature_std"):
+            values = reference.get(key)
+            if (
+                not isinstance(values, list)
+                or len(values) != len(features)
+                or not all(
+                    type(value) in (float, int) and math.isfinite(value)
+                    for value in values
+                )
+            ):
+                raise ValueError("Invalid monitoring feature distribution")
+        p50, p95 = (reference.get(key) for key in ("prediction_p50", "prediction_p95"))
+        if (
+            any(value < 0 for value in reference["feature_std"])
+            or not all(
+                type(value) in (float, int) and math.isfinite(value)
+                for value in (p50, p95)
+            )
+            or not 0 <= p50 <= p95
+        ):
+            raise ValueError("Invalid monitoring distribution")
+        required += ("monitor_reference",)
     payload = json.dumps(
         {"version": version, **{name: bundle[name] for name in required}},
         sort_keys=True,
