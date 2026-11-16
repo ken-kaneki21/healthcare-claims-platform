@@ -9,6 +9,18 @@ jobs:
         with:
           python-version: '3.10'
       - run: python -m unittest discover -v
+  v2-local:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install -r requirements-v2.txt
+      - run: ruff check healthcare test_v2_ingest.py test_v2_service.py
+      - run: python -m unittest discover -v
+      - run: python -m healthcare.cli smoke --database out/v2.sqlite
+      - run: python -m healthcare.cli train --database out/v2.sqlite --out out/ml-smoke.json
   dbt:
     runs-on: ubuntu-latest
     env:

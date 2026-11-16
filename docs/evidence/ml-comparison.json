@@ -1,0 +1,89 @@
+{
+  "experiment_version": "v2-cost-comparison-1",
+  "seed": 42,
+  "target": "next three service months, 90-day arrival completion",
+  "periods": {
+    "train": [
+      7,
+      10,
+      13
+    ],
+    "validation": 17,
+    "test": 21
+  },
+  "splits": {
+    "train": {
+      "rows": 51429,
+      "sha256": "1c2b8d70f08c0a21e2796dbcd36943b3b55fc585baa658e6ccb4f38d9e71de86"
+    },
+    "validation": {
+      "rows": 2857,
+      "sha256": "2e6a813f61e2f075cca187ec381af7620e28c6de252eb379160dc3328ede700d"
+    },
+    "unseen_members": {
+      "rows": 5000,
+      "sha256": "0e81f84bd57cf6873abb5644b3afeb177ce5056d6356ccdb3061af361a16358f"
+    },
+    "held_out_client": {
+      "rows": 25000,
+      "sha256": "39ae221caefe69589791a216b7e7212948694fb7edbd8ad4db6e9243b0791d82"
+    }
+  },
+  "metrics": {
+    "validation": {
+      "prior_quarter": {
+        "mae_usd": 470.54577178858943,
+        "rmse_usd": 577.0225528448603
+      },
+      "ridge": {
+        "mae_usd": 313.9394882926685,
+        "rmse_usd": 383.98516107183946
+      },
+      "hist_gradient_boosting": {
+        "mae_usd": 324.4483274964997,
+        "rmse_usd": 396.8429690666887
+      },
+      "torch_mlp": {
+        "mae_usd": 316.5687648005447,
+        "rmse_usd": 387.61259188146096
+      }
+    },
+    "unseen_members": {
+      "prior_quarter": {
+        "mae_usd": 330.050804,
+        "rmse_usd": 416.94777375743354
+      },
+      "ridge": {
+        "mae_usd": 301.29098708929706,
+        "rmse_usd": 367.6788032300544
+      },
+      "hist_gradient_boosting": {
+        "mae_usd": 376.62566553158786,
+        "rmse_usd": 449.44061852349637
+      },
+      "torch_mlp": {
+        "mae_usd": 311.59735583398435,
+        "rmse_usd": 380.3653231537348
+      }
+    },
+    "held_out_client": {
+      "prior_quarter": {
+        "mae_usd": 561.7154092,
+        "rmse_usd": 711.8085959296558
+      },
+      "ridge": {
+        "mae_usd": 377.02852835600476,
+        "rmse_usd": 477.7521970354312
+      },
+      "hist_gradient_boosting": {
+        "mae_usd": 366.60959118486755,
+        "rmse_usd": 463.0250605160577
+      },
+      "torch_mlp": {
+        "mae_usd": 376.627702553418,
+        "rmse_usd": 475.21901889756094
+      }
+    }
+  },
+  "torch_cpu": true
+}

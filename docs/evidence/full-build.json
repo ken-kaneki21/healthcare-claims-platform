@@ -1,0 +1,39 @@
+{
+  "members": 50000,
+  "seed": 42,
+  "months": 24,
+  "rows": {
+    "client": 2,
+    "provider": 500,
+    "member": 50000,
+    "member_alias": 52173,
+    "member_month": 1181592,
+    "risk_snapshot": 400000,
+    "claim": 1727344,
+    "encounter": 1727344,
+    "diagnosis": 1710691,
+    "payment_event": 2854878,
+    "claim_delivery": 2979003,
+    "close_fact": 2363184
+  },
+  "closes": [
+    {
+      "run": "original",
+      "cutoff": "2026-01-15",
+      "rows": 1181592,
+      "paid_cents": 40677158320,
+      "ledger_differences": 0,
+      "seconds": 13.62
+    },
+    {
+      "run": "revised",
+      "cutoff": "2026-03-31",
+      "rows": 1181592,
+      "paid_cents": 41806197165,
+      "ledger_differences": 0,
+      "seconds": 14.01
+    }
+  ],
+  "database_bytes": 484978688,
+  "seconds": 56.07
+}

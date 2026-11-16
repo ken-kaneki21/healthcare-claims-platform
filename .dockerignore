@@ -1,0 +1,8 @@
+out/
+.git/
+.venv/
+*.sqlite*
+.env*
+__pycache__/
+analytics/target/
+analytics/logs/

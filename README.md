@@ -1,5 +1,20 @@
 # Healthcare claims platform
 
+## V2 local preview
+
+The [implementation status](docs/IMPLEMENTATION_STATUS.md) records reproduced benchmarks, open gates and scope limits. Install `requirements-v2.txt` for API and model comparisons.
+
+```text
+python -m pip install -r requirements-v2.txt
+python -m unittest discover -v
+python -m healthcare.cli smoke --database out/v2.sqlite
+python -m healthcare.cli train --database out/v2.sqlite --out out/v2-model-evidence.json
+python -m healthcare.cli eval-agent --database out/v2.sqlite --provider mock
+python -m healthcare.cli full-build --database out/v2-full.sqlite
+```
+
+Set `CLAIMS_DEMO_SECRET` to a randomly generated value of at least 32 bytes, then use `python -m healthcare.cli token --tenant 1` and `python -m healthcare.cli serve --database out/v2.sqlite` for the loopback API and OpenAPI documentation. Use the token in the Authorization Bearer header. See [security](docs/security.md) and the [runbook](docs/runbooks.md).
+
 A synthetic healthcare database and claims-close workflow for two fictional clients. The full local run generated **50,000 members, 1,181,592 member-months, 1,727,344 claims, and 2,979,003 claim deliveries** over 24 months. Providers, member aliases, encounters, diagnoses, risk snapshots, rates, payments, and reporting tables share the same generated keys.
 
 ## Full build
