@@ -7,3 +7,7 @@ Earlier periods 7, 10, and 13 provide training examples. Period 17 is validation
 The last-quarter-spend baseline is compared with regularized linear regression and histogram gradient boosting. An opt-in CPU PyTorch experiment trains a small neural net via backpropagation. Metrics are MAE and RMSE. Results on the generated distribution provide no evidence of clinical validity or real-world financial accuracy. Batch predictions served by the API come from the original versioned ridge command, separately from this comparison.
 
 The V2 search selects ridge alpha and boosting leaf count by validation MAE. The comparison report includes per-split RMSE, p95 absolute error, mean error, high-needs and standard-cohort MAE, and standardized ridge coefficients. The validation baseline distribution is signed with the ridge artifact for tenant-level monitoring at inference time.
+
+## Patched CPU training environment
+
+Use Python 3.14 for the separate CPU training experiment. Install the standard libraries with `python -m pip install -r requirements-training.txt`, then install `torch==2.15.0+cpu` from `https://download.pytorch.org/whl/cpu`. The Ubuntu CI demo remains compatible with the original Python 3.10 requirements. The serving container uses only its separately resolved dependencies.

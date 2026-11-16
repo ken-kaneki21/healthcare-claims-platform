@@ -1,27 +1,51 @@
 # Engineering case studies
 
-All measurements use synthetic records from this repository.
+All workloads use fictional clients and synthetic records. See [verification evidence](evidence/) for measured outputs.
 
-## Data engineering — Replaying an interrupted claims feed
+## Reliable ingestion and replay
 
-Batch manifests record tenant, source and watermark. The retry test replays a batch without duplicating accepted deliveries. Validation failures retain a reason and payload checksum in quarantine. The close refuses to publish from an incomplete journal.
+**Problem.** A late or repeated delivery could change a financial close if it were applied twice. The first full replay also took nearly 17 minutes.
 
-## Analytics engineering — Revising a closed month
+**Implementation.** Checksummed manifests commit with their approved delivery versions. Invalid batches retain a reason and checksum in quarantine. Exact duplicate versions are no-ops. Conflicting versions roll back the whole batch. The extractor now paginates in delivery-ID order, and the loader validates claim ownership in groups and uses an atomic SQLite upsert.
 
-The original and revised cutoffs use separate snapshots at member-month grain. A third synthetic client used the alternate feed schema and contract V2. Its run produced 23,632 member-months per cutoff across all three clients with zero ledger differences. The incremental dbt rerun and full refresh returned the same 144 finance rows.
+**Verification and trade-off.** The recovery benchmark starts with one committed page, backfills the remainder and replays the whole source a second time. A repeat adds zero versions. DB writes stay atomic at the manifest boundary. The SQLite writer remains single-process. In paired 1,000-member profiling runs, direct SQLite execute calls dropped from 176,251 to 157 and wall time fell from 8.906 to 1.046 seconds. The 50,000-member run completed with zero row differences against the prior frozen closes.
 
-## Applied AI — Explaining a payment adjustment
+## Financial reconciliation and restatement
 
-The financial API separates late first payments from adjustments and checks that their sum matches the ledger. In the rules-only evaluation, 216 financial cases matched expected numbers, tool choices and evidence. Across all 281 cases, denied, missing, ambiguous and unsupported requests returned the expected status. The suite includes templated variants.
+**Problem.** Claims can arrive after a report is frozen, and a mutable balance can hide the original financial result.
 
-## AI platform — Binding requests to the authenticated client
+**Implementation.** Each snapshot selects the latest approved delivery version available at its cutoff. A separate ledger sums payment deltas at the same cutoff. The API attributes revision differences to late first payments or adjustments, and emits an explanation only when the bridge ties to the ledger.
 
-The service resolves the tenant from a signed token and denies route and body overrides. In GitHub Actions, the container passed readiness, returned HTTP 200 for an allowed query and HTTP 403 for a cross-tenant query. Local integration tests also cover the request limit.
+**Verification and trade-off.** Both 50,000-member closes reconcile to the cent at member-month grain. Rebuilding a close requires both the committed journal and reference dimensions. An incomplete journal aborts publication.
 
-## MLOps — Promoting a reproducible batch model
+## Multi-client analytics engineering
 
-The registry verifies signed artifacts and compares models on the same validation and feature fingerprints. A locally registered ridge model produced 50,000 versioned predictions. Controlled tests verified downgrade rejection, rollback and artifact tamper detection.
+**Problem.** A new fictional client supplied a different schema and risk period. The original dbt incremental model treated each close ID as permanently unchanged.
 
-## ML engineering — Testing whether a result transfers
+**Implementation.** Schema V2 maps alternate names to the order of the canonical fields. Effective-month rules determine synthetic eligibility, attribution, risk cadence and benchmark factors. The mart updates changed close groups and removes groups missing from the source snapshot.
 
-A point-in-time test checks that a historical correction arriving after the feature cutoff is excluded. Ridge achieved USD 301.29 MAE on later unseen members, while gradient boosting achieved USD 366.61 on the held-out client. On a separately generated 10,000-member population, ridge scored USD 345.61 MAE against USD 530.89 for prior-quarter spend.
+**Verification and trade-off.** The three-client run produced 23,468 member-months per cutoff with zero ledger differences. After a source correction and deletion, the incremental and full refresh results matched across 142 finance rows. The incremental run scans the current source snapshot to detect removals.
+
+## Predictive ML and generalization
+
+**Problem.** Random train/test splitting can leak later revisions or member-specific behavior. A model that works for its training client can also generalize poorly to another.
+
+**Implementation.** Cohorts use disjoint member groups, cutoff-aware features and later-period outcomes. Ridge and boosting parameters are selected on validation only. The comparison records an independent seed, a recent-spend ablation, error percentiles and cohort MAE.
+
+**Verification and trade-off.** On Python 3.14, ridge reached USD 301.25 MAE on unseen members compared with USD 330.05 for prior-quarter spend. Boosting reached USD 366.45 on the held-out client versus ridge's USD 376.92. The synthetic populations support reproducible comparisons. They cannot estimate errors on an actual health plan.
+
+## Model lifecycle and monitoring
+
+**Problem.** A model that wins in training needs verifiable promotion criteria and a reversible deployment decision.
+
+**Implementation.** The local registry signs the feature contract, split fingerprints, validation metrics, coefficients and monitoring reference. Model promotion compares the same validation split. The monitor checks feature means and prediction percentiles per tenant without reading outcome labels.
+
+**Verification and trade-off.** The tuned ridge improved validation MAE from USD 313.94 to USD 313.75. Promotion and rollback each generated 50,000 versioned predictions. The independent 10,000-member run alerted on recent spend for fictional client 2. Distribution alerts can indicate shift before labels arrive. They do not estimate predictive accuracy.
+
+## Financial AI and authenticated service boundaries
+
+**Problem.** Financial questions need evidence, and a request body must never override the authenticated tenant.
+
+**Implementation.** Tool routing is restricted to approved operations and periods. SQL supplies every amount. The API validates issuer, audience, expiry and scope for OIDC access tokens. The hosted question adapter is opt-in.
+
+**Verification and trade-off.** The parameterized suite passed 281 cases. A separate authored suite passed 159 questions, with a separate numeric ledger assertion for two-month PMPM. The OIDC test used signed access-token fixtures, and real Docker recovered its prediction after restart. Live model quality and cloud identity verification depend on a configured environment.

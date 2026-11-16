@@ -29,6 +29,18 @@ Use new output directories for each benchmark. The benchmark records recovery, d
 
 ## Environment and release gates
 
-Windows, 12 logical processors, Python 3.10 for the original suite and a separate Python 3.14 CPU training environment. Docker Desktop engine 29.3.1 and Compose 5.1.1 were reachable from the host. Port 8000 was occupied during testing, so a separate loopback port was used. The local LLM runtime and hosted credentials were not configured. The full-scale dataset and model binaries stay under ignored `out/`.
+Windows, AMD Ryzen 5 5600H, 12 logical processors, 16.47 GB physical RAM, Python 3.10 for the original suite and a separate Python 3.14 CPU training environment. Docker Desktop engine 29.3.1 and Compose 5.1.1 were reachable from the host. Port 8000 was occupied during testing, so a separate loopback port was used. No supported local LLM runtime or configured hosted endpoint was found. The full-scale dataset and model binaries stay under ignored `out/`.
 
 Use a provider-approved environment for live evaluation, verify a real OIDC issuer against the deployment, and keep PR #1 in draft while any mandatory gate remains open. See [release status](IMPLEMENTATION_STATUS.md) for measured results, audit findings and open work.
+
+## Verified checkpoints
+
+- Implementation commits: `07a9f2b` for data and scale, `8248958` for model tuning and monitoring, and `1bcfa0d` for the financial API, identity, and deployment.
+- `python -m unittest discover -q` passed 17 tests. The separate authored case loop exercised 159 questions. Ruff and the targeted type check passed.
+- The Windows Compose run first hit an occupied port. Retrying on loopback port 18764 passed startup, authentication, prediction, restart and shutdown checks.
+- A Python 3.12 serving-image audit found zero advisories across 22 distributions. A Python 3.14 training environment resolved the filelock and setuptools advisories. The exact CPU torch variant was skipped by the PyPI lookup. The upstream release returned zero OSV findings.
+- Benchmark, model, monitoring, and finance evidence are in [docs/evidence](evidence/). The working databases and full output are in ignored `out/`.
+
+## Remaining external validation
+
+Use an approved provider and set `CLAIMS_LLM_ENDPOINT`, `CLAIMS_LLM_MODEL`, and `CLAIMS_LLM_API_KEY` in the local process. Run `python -m healthcare.cli eval-agent --database out/mandate-three/close.sqlite --provider live --allow-billed --out out/live-evaluation.json` with an approved budget. Validate a real issuer and deployment using [the deployment instructions](deployment.md). Review the unresolved exact CPU wheel and container OS package coverage before release. The draft PR already points to these checks.

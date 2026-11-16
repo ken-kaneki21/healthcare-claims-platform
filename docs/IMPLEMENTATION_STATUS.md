@@ -4,15 +4,15 @@ This branch starts from main commit `3073a277129f0964500643e4dd64f44edff37f98`. 
 
 | Gate | State | Evidence and remaining work |
 | --- | --- | --- |
-| R0 Baseline | Done | Four original tests passed. A fresh 1,000-member run produced 59,565 deliveries. A fresh 50,000-member run produced 2,979,003 deliveries and reconciled both closes with zero differences. |
-| R1 Ingestion | Done for local acceptance | `healthcare/ingest.py` and `healthcare/journal_close.py` rebuild both cutoffs from approved deliveries and reject an incomplete tenant feed. Quarantine persists the reason and payload checksum after rollback. The baseline command still works. |
-| R2 Contracts | Partial | Three fictional clients ran through journal close and dbt. Client 3 uses contract V2 and a different synthetic cost factor. Full versus incremental dbt results matched across 144 rows. Richer versioned rule configuration and independent source eligibility variation remain open. |
-| R3 Scale | Partial | Fresh 1K, 10K, and 50K baseline profiles reconciled. A 10K repeat measured 55,732 deliveries per build second and a sampled peak working set of 43,544,576 bytes. Peak memory at 50K and a historical backfill benchmark remain open. |
-| R4 Training | Partial | The CPU model comparison was rerun with a separate seed-113, 10K population and a validation-only ablation. A test proves a late historical correction cannot leak into features. Validation hyperparameter search and broader error-slice reporting remain open. |
-| R5 Model operations | Partial | `healthcare/registry.py` signs JSON models and gates promotion using matching validation fingerprints and validation MAE. Rollback and tamper detection passed fixture tests. A trained registered ridge model produced 50,000 batch predictions. The API can read that batch after restart. Drift monitoring remains open. |
-| R6 Financial AI | Partial | `healthcare/agent.py` decomposes restatements into late first payments and adjustments and reports numerical, tool and evidence results separately. 281/281 deterministic checks passed on the three-client fixture, including templated cases. Live LLM calls and independently authored coverage remain open. |
-| R7 Service | Partial | `healthcare/api.py` provides signed tenant identity, structured request logs, and per-process rate limiting. Integration tests deny cross-tenant paths and body overrides. The GitHub Actions container passed readiness, an allowed finance request and a denied cross-tenant request. Production identity and cloud deployment remain open. |
-| R8 Publication | Partial | V2 branch with CI configuration and documentation. Merge, public tag, and release assets are gated on completion and authorization. |
+| R0 Baseline | Done | Original code path and historical close results reproduced. |
+| R1 Ingestion | Done locally | Both cutoffs use committed deliveries and reconcile to the independent ledger. Quarantine, conflict handling, interruption, and identical replay are tested. |
+| R2 Analytics | Done locally | Three fictional clients, dated rules and alternate feed contracts run end to end. dbt incremental and full-refresh results match after changing and removing existing groups. |
+| R3 Scale | Done locally | Fresh 1K, 10K and 50K recovery benchmarks and replay parity are recorded in the evidence. |
+| R4 Training | Done locally | Validation-only search, point-in-time tests, cohort errors, coefficient analysis and independent seed-113 and seed-291 evaluations passed. |
+| R5 Model operations | Done locally | Promoted the tuned signed candidate, generated 50,000 predictions, flagged one synthetic tenant for drift, and restored and reran the prior version. |
+| R6 Financial AI | Partial | 159 authored question cases and 281 deterministic ledger and policy cases passed. A live LLM provider was unavailable. |
+| R7 Service | Partial | An OIDC signature fixture, local Docker runtime and Python dependency scans passed. A real OIDC issuer and cloud environment remain unverified. The CPU wheel needs exact-variant advisory coverage. |
+| R8 Publication | Partial | Evidence, case studies, updated repository metadata and an updated draft PR are published. A final merge and tag are pending release acceptance. |
 
 ## Reproduced measurements
 
@@ -54,3 +54,29 @@ The deterministic finance evaluation passed 281 of 281 cases. All 216 financial 
 At 50K, the journal ingestion accepted 2,979,003 source deliveries in 299 manifests and kept 2,854,878 unique delivery versions. Ingestion across both clients took 1,009.52 seconds on the Windows test host. Journal-backed materialization took 31.72 seconds end to end. Each cutoff produced 1,181,592 member-months with zero ledger differences. Two-way SQL EXCEPT found zero differing close rows between the journal and the baseline.
 
 The dependency audit found advisories in the local installer and in the optional PyTorch environment. Upgrading pip to 26.3 cleared its findings. A repeat audit still reported 17 advisories for filelock 4.1.0, a PyTorch dependency. The configured package index offered no compatible filelock 4.2.1 or later for this Python 3.10 environment. The local dependency gate remains open. The serving container does not install PyTorch.
+
+## Release verification after the implementation checkpoint
+
+The original measurements above remain historical. The current verified changes introduce effective-dated client rules, indexed and batched journal ingestion, validation-only model search, registered-model monitoring, evidence-backed multi-month finance comparisons and an OIDC access-token verifier.
+
+- Three-client journal run: 23,468 member-months per cutoff, zero ledger differences, and zero close row differences. The changed-and-removed snapshot check passed with 142 identical finance rows for incremental and full refresh.
+- Tests: 17 Python tests, Ruff and a targeted mypy check of identity, monitoring, registry, and scale passed. The authored suite covered 159 questions, and the ledger-based evaluation passed 281/281 with 216/216 numerical, tool, and evidence checks. Only deterministic evaluation ran.
+- Local Docker on Windows: readiness, authenticated finance and predictions, anonymous and cross-tenant denials, agent responses and restart recovery passed. The original smoke attempt found port 8000 in use. The verified run used port 18764 and cleaned up its service and network.
+- Model: the validation search selected ridge alpha 1000 and a seven-leaf boosting configuration. The registry accepted the tuned ridge and produced 50,000 predictions. The 10,000-member monitor flagged fictional client 2 for a recent-spend shift of 0.799 against a 0.75 threshold. Rolling back restored the original model and produced 50,000 predictions again.
+- Dependency audit: the serving image and the audited Python 3.14 training packages showed zero findings after updating filelock and setuptools. The exact CPU PyTorch wheel could not be matched by the PyPI scanner. A separate OSV check found zero advisories against the upstream release.
+
+See [model comparison](evidence/v2-tuned-model.json), [monitor report](evidence/v2-model-monitor.json), [deterministic evaluation](evidence/v2-rules-evaluation.json), and the [Python dependency audit](evidence/v2-dependency-audit-summary.json).
+
+### Fresh scale and recovery benchmark
+
+Windows, AMD Ryzen 5 5600H, Python 3.10, storage in the OneDrive workspace. Each run generated a fresh seed-42 database, committed one page, backfilled the rest and rebuilt both closes. A second replay inserted zero versions. Peak memory comes from the Python process rather than the launcher. Build, journal and close numbers are wall seconds.
+
+| Members | Deliveries | Build | Journal | Backfill after checkpoint | Journal closes | End-to-end | Repeat replay | Peak memory |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1,000 | 59,565 | 1.47 | 0.764 | 0.649 | 1.00 | 3.23 | 0.220 | 39.8 MiB |
+| 10,000 | 595,776 | 17.52 | 42.385 | 41.621 | 10.35 | 70.257 | 2.146 | 62.8 MiB |
+| 50,000 | 2,979,003 | 115.79 | 853.040 | 850.551 | 56.83 | 1,025.659 | 8.055 | 158.7 MiB |
+
+At 50K, the journal contained 2,854,878 unique versions in a 220,053,504-byte database. The source database was 484,765,696 bytes. Journal throughput was 3,492 deliveries per second. Both closes reconciled 1,181,592 member-months apiece with zero row or ledger differences against the frozen baseline. The observed full ingestion time moved from 1,009.52 to 853.04 seconds. The runs shared a machine and dataset shape, with differing concurrent load, so the paired profiling comparison is stronger evidence for the cause.
+
+On the same 1,000-member source, paired cProfile runs counted 176,251 direct SQLite execute calls before the change and 157 direct calls plus 120 executemany calls after it. Workspace runtime went from 8.906 to 1.046 seconds. The local temporary directory showed the same pattern. At 10K, extraction-only timing went from 6.81 to 1.39 seconds after replacing a repeated temporary sort with a primary-key range scan. See [benchmark results](evidence/v2-scale-and-analytics.json) for raw counts, memory, sizes and outputs.

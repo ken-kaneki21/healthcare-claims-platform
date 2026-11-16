@@ -1,0 +1,36 @@
+{
+  "evaluation_version": "finance-gold-2",
+  "provider": "deterministic_rules",
+  "cases": 281,
+  "passed": 281,
+  "numeric_correct": 216,
+  "tool_correct": 216,
+  "evidence_correct": 216,
+  "financial_cases": 216,
+  "by_expected_status": {
+    "ambiguous": {
+      "cases": 1,
+      "passed": 1
+    },
+    "denied": {
+      "cases": 31,
+      "passed": 31
+    },
+    "no_evidence": {
+      "cases": 30,
+      "passed": 30
+    },
+    "ok": {
+      "cases": 216,
+      "passed": 216
+    },
+    "unsupported": {
+      "cases": 3,
+      "passed": 3
+    }
+  },
+  "failure_categories": {},
+  "p50_ms": 5.822700040880591,
+  "p95_ms": 15.258100000210106,
+  "reported_tokens": 0
+}

@@ -1,0 +1,96 @@
+{
+  "version": "ridge-validation-search",
+  "period": 21,
+  "feature_threshold": 0.75,
+  "prediction_threshold": 0.25,
+  "tenants": [
+    {
+      "tenant": 1,
+      "rows": 5000,
+      "features": {
+        "age_band": {
+          "mean": 2.0,
+          "standardized_shift": 0.00044269457004412875,
+          "alert": false
+        },
+        "high_needs": {
+          "mean": 0.091,
+          "standardized_shift": 4.550227511376792e-06,
+          "alert": false
+        },
+        "paid_3_months_usd": {
+          "mean": 591.1431859999992,
+          "standardized_shift": 0.32527240480712777,
+          "alert": false
+        },
+        "paid_6_months_usd": {
+          "mean": 1568.2177520000032,
+          "standardized_shift": 0.025659378486668983,
+          "alert": false
+        },
+        "claim_count_6_months": {
+          "mean": 7.2948,
+          "standardized_shift": 0.07033974485858153,
+          "alert": false
+        }
+      },
+      "predictions": {
+        "p50": {
+          "observed_usd": 1008.4378010368621,
+          "relative_shift": 0.00938683580387894,
+          "alert": false
+        },
+        "p95": {
+          "observed_usd": 1107.8198322893095,
+          "relative_shift": 0.011807487179755254,
+          "alert": false
+        }
+      },
+      "alert": false
+    },
+    {
+      "tenant": 2,
+      "rows": 5000,
+      "features": {
+        "age_band": {
+          "mean": 2.0,
+          "standardized_shift": 0.00044269457004412875,
+          "alert": false
+        },
+        "high_needs": {
+          "mean": 0.0908,
+          "standardized_shift": 0.00020455022751136864,
+          "alert": false
+        },
+        "paid_3_months_usd": {
+          "mean": 707.9686180000008,
+          "standardized_shift": 0.799009352790281,
+          "alert": true
+        },
+        "paid_6_months_usd": {
+          "mean": 1849.0517179999952,
+          "standardized_shift": 0.62366407828247,
+          "alert": false
+        },
+        "claim_count_6_months": {
+          "mean": 7.3664,
+          "standardized_shift": 0.018721978895306038,
+          "alert": false
+        }
+      },
+      "predictions": {
+        "p50": {
+          "observed_usd": 1020.8573555297113,
+          "relative_shift": 0.02181807826498208,
+          "alert": false
+        },
+        "p95": {
+          "observed_usd": 1123.8212153438667,
+          "relative_shift": 0.0024659952660371753,
+          "alert": false
+        }
+      },
+      "alert": true
+    }
+  ]
+}

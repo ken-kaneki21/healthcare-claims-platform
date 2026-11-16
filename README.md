@@ -58,10 +58,10 @@ The default seed is 42. The builder refuses to overwrite an existing database. T
 | --- | --- |
 | Source and raw deliveries | Two fictional clients share a schema. Provider attribution changes over time. Claim lines include repeats, delays, zero pay and signed adjustments in the source ledger. Raw deliveries carry replacement amounts. |
 | Reporting | Two frozen close cutoffs, member-month reports, PMPM, a synthetic expense-to-benchmark ratio and a restatement view. Missing benchmark values remain explicit. |
-| dbt analytics | Export close facts to Parquet and build a reporting mart and restatement table in DuckDB. The incremental monthly model loads each immutable close once. |
+| dbt analytics | Export close facts to Parquet and build a reporting mart and restatement table in DuckDB. The V2 incremental model updates corrected close groups and removes groups absent from a replacement snapshot. |
 | Reconciliation | The warehouse calculates from versioned deliveries. The oracle calculates independently by summing payment-ledger deltas. Differences fail the build. |
 | Cost prediction | Ridge regression and a prior-quarter spend baseline. Features use only payments received before the prediction date. The evaluation holds out later periods, unseen members, and a second fictional client. The trained coefficients can produce versioned batch predictions. |
-| Financial tools | Read-only, parameterized close and restatement queries scoped to a selected fictional client. The CLI returns values and their source view and reports unsupported or missing requests. It is the deterministic tool layer for a future LLM. |
+| Financial tools | Read-only, parameterized close and restatement queries scoped to a selected fictional client. The CLI returns values and their source view and reports unsupported or missing requests. The V2 API uses these deterministic tools for financial answers and can route approved hosted requests through a model. |
 
 ### Measured full-scale run
 
@@ -70,7 +70,7 @@ The default seed is 42. The builder refuses to overwrite an existing database. T
 - The financial tools passed 96 numerical checks and two unsupported or missing-evidence checks. Four automated test cases passed locally.
 - Exported 2,363,184 close facts to Parquet. Ran three dbt models and three data tests twice. All 96 monthly aggregate rows matched SQLite after the incremental rerun.
 
-All inputs are independently generated. The database is an illustrative claims model. The expense-to-benchmark ratio is a portfolio metric. Public CMS field layouts and official settlement are outside this implementation. The tenant filter is a query constraint in a local CLI. An authenticated service would need to bind it to the calling identity.
+All inputs are independently generated. The database is an illustrative claims model. The expense-to-benchmark ratio is a portfolio metric. Public CMS field layouts and official settlement are outside this implementation. The historical CLI uses a tenant query filter. The V2 API binds tenant scope to the authenticated identity.
 
 ### Build the dbt marts
 
@@ -82,7 +82,7 @@ $env:CLAIMS_ANALYTICS_DB = (Join-Path (Get-Location) 'out/claims_analytics.duckd
 dbt build --project-dir analytics --profiles-dir analytics
 ```
 
-Keep published close IDs immutable when reusing a DuckDB file. Use a new warehouse file or `dbt build --full-refresh` when changing the source dataset under the same close IDs.
+Use a complete Parquet snapshot for incremental runs. The model reconciles changed and removed groups with that snapshot. Use `dbt build --full-refresh` to reproduce the same result from scratch.
 
 ## Small fault drills
 

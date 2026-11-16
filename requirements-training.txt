@@ -1,0 +1,7 @@
+numpy==2.5.5
+scikit-learn==1.9.1
+mlflow-skinny==3.18.0
+SQLAlchemy>=2,<3
+alembic>=1.13,<2
+filelock==4.2.4
+setuptools>=84.1,<85
