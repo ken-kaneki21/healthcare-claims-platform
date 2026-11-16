@@ -39,5 +39,11 @@ class MonitoringTests(unittest.TestCase):
                 normal, shifted = evaluate(source, 21, bundle)["tenants"]
                 self.assertFalse(cohort.call_args.kwargs["include_target"])
                 self.assertFalse(normal["alert"])
+                self.assertEqual(normal["missing_feature_count"], 0)
                 self.assertTrue(shifted["features"]["paid_3_months_usd"]["alert"])
                 self.assertTrue(shifted["predictions"]["p95"]["alert"])
+                missing = rows.astype(float)
+                missing[0, 2] = np.nan
+                cohort.return_value = missing
+                with self.assertRaisesRegex(ValueError, "missing or non-finite"):
+                    evaluate(source, 21, bundle)

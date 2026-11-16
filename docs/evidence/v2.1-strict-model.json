@@ -1,0 +1,291 @@
+{
+  "experiment_version": "v2-cost-strict-1",
+  "seed": 42,
+  "target": "next three service months, 90-day arrival completion",
+  "periods": {
+    "train": [
+      7,
+      8
+    ],
+    "validation": 14,
+    "test": 21
+  },
+  "splits": {
+    "train": {
+      "rows": 34286,
+      "sha256": "5f4db5462c020d8d01755a6495dd29e54a86aaaf0cbcbe207b6cb6e133a0ca76"
+    },
+    "validation": {
+      "rows": 2857,
+      "sha256": "dd99c0c5cc9c421f23eeab3787b6e8086b63649d1ada1789bad5522b39f4ac01"
+    },
+    "unseen_members": {
+      "rows": 5000,
+      "sha256": "0e81f84bd57cf6873abb5644b3afeb177ce5056d6356ccdb3061af361a16358f"
+    },
+    "held_out_client": {
+      "rows": 25000,
+      "sha256": "39ae221caefe69589791a216b7e7212948694fb7edbd8ad4db6e9243b0791d82"
+    },
+    "independent_population": {
+      "rows": 10000,
+      "sha256": "d943c9df29e4d5695beb9e28747aeb8a9522ce891770e5797aa4ea11799ddd58"
+    }
+  },
+  "metrics": {
+    "validation": {
+      "prior_quarter": {
+        "mae_usd": 484.8018550927546,
+        "rmse_usd": 596.4515687485892,
+        "p95_absolute_error_usd": 1145.3559999999995,
+        "mean_error_usd": -388.0980609030451,
+        "wape_percent": 48.60437555809822,
+        "high_cost_mae_usd": 1006.5696448087432,
+        "standard_mae_usd": 483.2777319984598,
+        "high_needs_mae_usd": 500.0255
+      },
+      "seasonal_naive": {
+        "mae_usd": 455.31386419320967,
+        "rmse_usd": 574.9586767894157,
+        "p95_absolute_error_usd": 1124.3559999999995,
+        "mean_error_usd": -317.094403220161,
+        "wape_percent": 45.64802262941346,
+        "high_cost_mae_usd": 932.5544262295082,
+        "standard_mae_usd": 453.8171351559492,
+        "high_needs_mae_usd": 470.26388461538465
+      },
+      "ridge": {
+        "mae_usd": 296.51887453254074,
+        "rmse_usd": 367.09721649060896,
+        "p95_absolute_error_usd": 711.8937750168907,
+        "mean_error_usd": 4.80261647025145,
+        "wape_percent": 29.72784568880583,
+        "high_cost_mae_usd": 616.8707011970512,
+        "standard_mae_usd": 296.2455547170794,
+        "high_needs_mae_usd": 299.24891899697576
+      },
+      "hist_gradient_boosting": {
+        "mae_usd": 298.0349983943364,
+        "rmse_usd": 368.6400013154405,
+        "p95_absolute_error_usd": 705.2446457742077,
+        "mean_error_usd": 4.628152444045742,
+        "wape_percent": 29.879846455298804,
+        "high_cost_mae_usd": 620.6301728647725,
+        "standard_mae_usd": 297.52221900712954,
+        "high_needs_mae_usd": 303.15687558116883
+      },
+      "torch_mlp": {
+        "mae_usd": 298.6932819071373,
+        "rmse_usd": 369.9226066059423,
+        "p95_absolute_error_usd": 717.7918359375,
+        "mean_error_usd": 6.6908424133364885,
+        "wape_percent": 29.945843436836252,
+        "high_cost_mae_usd": 614.2023615669292,
+        "standard_mae_usd": 298.14235567312494,
+        "high_needs_mae_usd": 304.19618740609974
+      }
+    },
+    "unseen_members": {
+      "prior_quarter": {
+        "mae_usd": 330.050804,
+        "rmse_usd": 416.94777375743354,
+        "p95_absolute_error_usd": 829.3250000000002,
+        "mean_error_usd": -59.081120000000006,
+        "wape_percent": 40.20575727646238,
+        "high_cost_mae_usd": 819.8236666666667,
+        "standard_mae_usd": 330.11009460946093,
+        "high_needs_mae_usd": 329.45854945054947
+      },
+      "seasonal_naive": {
+        "mae_usd": 386.7705,
+        "rmse_usd": 483.5828661707112,
+        "p95_absolute_error_usd": 942.2555,
+        "mean_error_usd": 101.73397599999998,
+        "wape_percent": 47.11517334978524,
+        "high_cost_mae_usd": 532.8570666666667,
+        "standard_mae_usd": 387.88782618261826,
+        "high_needs_mae_usd": 375.6095164835165
+      },
+      "ridge": {
+        "mae_usd": 291.378942946573,
+        "rmse_usd": 356.56786011660375,
+        "p95_absolute_error_usd": 687.7305701315202,
+        "mean_error_usd": 187.08457690227976,
+        "wape_percent": 35.49487204273586,
+        "high_cost_mae_usd": 532.5319552207609,
+        "standard_mae_usd": 291.3705258362616,
+        "high_needs_mae_usd": 291.46302155396904
+      },
+      "hist_gradient_boosting": {
+        "mae_usd": 301.80249136521286,
+        "rmse_usd": 367.00306387206507,
+        "p95_absolute_error_usd": 700.1112710695934,
+        "mean_error_usd": 209.88907119087494,
+        "wape_percent": 36.76463612935595,
+        "high_cost_mae_usd": 503.72496613322124,
+        "standard_mae_usd": 301.7379199265931,
+        "high_needs_mae_usd": 302.44749617516146
+      },
+      "torch_mlp": {
+        "mae_usd": 292.97437266162115,
+        "rmse_usd": 358.3197032870311,
+        "p95_absolute_error_usd": 691.9661475830079,
+        "mean_error_usd": 186.14573178369142,
+        "wape_percent": 35.68922230365775,
+        "high_cost_mae_usd": 534.6512115071615,
+        "standard_mae_usd": 291.06208809958144,
+        "high_needs_mae_usd": 312.07620416595125
+      }
+    },
+    "held_out_client": {
+      "prior_quarter": {
+        "mae_usd": 561.7154092000001,
+        "rmse_usd": 711.8085959296558,
+        "p95_absolute_error_usd": 1421.882,
+        "mean_error_usd": -389.9480316,
+        "wape_percent": 51.75910940965828,
+        "high_cost_mae_usd": 1065.8926676101185,
+        "standard_mae_usd": 561.0143690601901,
+        "high_needs_mae_usd": 568.7282790492957
+      },
+      "seasonal_naive": {
+        "mae_usd": 526.0062,
+        "rmse_usd": 661.256125056638,
+        "p95_absolute_error_usd": 1308.913,
+        "mean_error_usd": 69.60004,
+        "wape_percent": 48.468694306844014,
+        "high_cost_mae_usd": 675.4608667963913,
+        "standard_mae_usd": 526.3467524639211,
+        "high_needs_mae_usd": 522.5994762323943
+      },
+      "ridge": {
+        "mae_usd": 376.12607475479996,
+        "rmse_usd": 480.10070455833716,
+        "p95_absolute_error_usd": 964.6998498337678,
+        "mean_error_usd": -86.15536590884604,
+        "wape_percent": 34.65803205004724,
+        "high_cost_mae_usd": 730.2359403860083,
+        "standard_mae_usd": 376.4307271911696,
+        "high_needs_mae_usd": 373.0784776712577
+      },
+      "hist_gradient_boosting": {
+        "mae_usd": 374.88918485710605,
+        "rmse_usd": 479.00609167310085,
+        "p95_absolute_error_usd": 962.9520546432823,
+        "mean_error_usd": -91.95160507123124,
+        "wape_percent": 34.544059176072466,
+        "high_cost_mae_usd": 730.8142859465263,
+        "standard_mae_usd": 375.2654807678767,
+        "high_needs_mae_usd": 371.12490076379805
+      },
+      "torch_mlp": {
+        "mae_usd": 378.2009996733399,
+        "rmse_usd": 483.48240032974564,
+        "p95_absolute_error_usd": 967.0933741455077,
+        "mean_error_usd": -86.07327903486326,
+        "wape_percent": 34.84922542682943,
+        "high_cost_mae_usd": 730.5543793645589,
+        "standard_mae_usd": 378.9272359301397,
+        "high_needs_mae_usd": 370.93607993542304
+      }
+    },
+    "independent_population": {
+      "prior_quarter": {
+        "mae_usd": 530.894216,
+        "rmse_usd": 656.0648463796243,
+        "p95_absolute_error_usd": 1268.655,
+        "mean_error_usd": -386.510112,
+        "wape_percent": 51.24135034121485,
+        "high_cost_mae_usd": 991.4109140369966,
+        "standard_mae_usd": 530.530642393576,
+        "high_needs_mae_usd": 534.5303520352035
+      },
+      "seasonal_naive": {
+        "mae_usd": 454.177852,
+        "rmse_usd": 582.2752892335892,
+        "p95_absolute_error_usd": 1175.4054999999994,
+        "mean_error_usd": 26.439506000000005,
+        "wape_percent": 43.836767721636704,
+        "high_cost_mae_usd": 591.4639662676823,
+        "standard_mae_usd": 452.60030029699703,
+        "high_needs_mae_usd": 469.95510451045106
+      },
+      "ridge": {
+        "mae_usd": 343.24119321137135,
+        "rmse_usd": 435.18073631028193,
+        "p95_absolute_error_usd": 913.7172768419748,
+        "mean_error_usd": -36.76981644664165,
+        "wape_percent": 33.12927830594503,
+        "high_cost_mae_usd": 660.6335744415752,
+        "standard_mae_usd": 342.9130008496951,
+        "high_needs_mae_usd": 346.52347787583705
+      },
+      "hist_gradient_boosting": {
+        "mae_usd": 345.28063321215797,
+        "rmse_usd": 437.68090645630843,
+        "p95_absolute_error_usd": 917.1370632511756,
+        "mean_error_usd": -36.602361036895964,
+        "wape_percent": 33.32612290592499,
+        "high_cost_mae_usd": 662.8291962695645,
+        "standard_mae_usd": 345.01428493653725,
+        "high_needs_mae_usd": 347.9444089807691
+      },
+      "torch_mlp": {
+        "mae_usd": 342.1078680004883,
+        "rmse_usd": 433.73425981150086,
+        "p95_absolute_error_usd": 912.5748551025383,
+        "mean_error_usd": -34.265915086425785,
+        "wape_percent": 33.01989095074094,
+        "high_cost_mae_usd": 649.4044725871787,
+        "standard_mae_usd": 341.0071927939656,
+        "high_needs_mae_usd": 353.11583092952856
+      }
+    }
+  },
+  "torch_cpu": true,
+  "validation_ablation_without_recent_spend_mae_usd": 296.4639957383576,
+  "validation_search_mae_usd": {
+    "ridge": {
+      "1": 296.5705223423635,
+      "10": 296.56993510793313,
+      "100": 296.5641941316552,
+      "1000": 296.51887453254074
+    },
+    "hist_gradient_boosting": {
+      "7": 298.0349983943364,
+      "15": 298.09944777604005,
+      "31": 298.9073637051643
+    }
+  },
+  "selected_parameters": {
+    "ridge_alpha": 1000,
+    "boosting_max_leaf_nodes": 7
+  },
+  "environment": {
+    "python": "3.14.3",
+    "os": "Windows",
+    "machine": "AMD64",
+    "processor": "AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD"
+  },
+  "combined_inference_and_seasonal_query_ms": {
+    "validation": 3410.0609000306576,
+    "unseen_members": 2033.9019000530243,
+    "held_out_client": 1071.323600015603,
+    "independent_population": 628.0555999837816
+  },
+  "high_cost_threshold_usd": 1429.68,
+  "ridge_standardized_coefficients": {
+    "age_band": -11.072290482753873,
+    "high_needs": -0.17154723783780698,
+    "paid_3_months_usd": 1.4798313968720105,
+    "paid_6_months_usd": 4.615107782446954,
+    "claim_count_6_months": 50.10803731798503
+  },
+  "reproduced_split_fingerprints": true,
+  "reproduced_metrics": true,
+  "dataset": {
+    "tracking": "local MLflow SQLite",
+    "independent_source": "seed 113, 10,000 synthetic members",
+    "training_source": "seed 42, 50,000 synthetic members"
+  }
+}

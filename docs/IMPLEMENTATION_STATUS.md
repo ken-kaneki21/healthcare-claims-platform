@@ -88,3 +88,7 @@ A fresh 50,000-member regression generated 1,727,344 claims and 2,979,003 delive
 The local Keycloak stack verified signed tokens against real TLS discovery and JWKS, enforced scope and role, and isolated all three fictional tenants on finance, prediction and agent paths. It recovered after an API restart. The local CPU model-backed agent matched the financial tool on an authenticated natural-language request. Use the evidence links and [release notes](RELEASE.md) for exact scope.
 
 The release regression also rebuilt three dbt models and ran three dbt tests across an incremental rerun and full refresh. All 144 finance rows matched. The model training smoke completed and the full test suite passed 19 Python tests, Ruff, and the targeted type check. [Identity, container, and data evidence](evidence/v2-local-release-verification.json) and [live-model evidence](evidence/v2-live-llm-evaluation.json) contain the redacted outputs.
+
+## Forecast investigation candidate
+
+See [integration acceptance](INTEGRATION_ACCEPTANCE.md) for the strict ML experiment, reproducible registry lifecycle, authenticated API and offline Docker investigation evidence.

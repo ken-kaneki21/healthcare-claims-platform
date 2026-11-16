@@ -2,9 +2,11 @@
 
 import hashlib
 import json
+import platform
 import sqlite3
 from contextlib import closing
 from pathlib import Path
+from time import perf_counter
 
 FEATURES = [
     "age_band",
@@ -15,12 +17,34 @@ FEATURES = [
 ]
 
 
+def seasonal(db, period, rows):
+    """Use the same service quarter one year earlier, with a tenure fallback."""
+    observations = {}
+    for tenant, member, paid in db.execute(
+        """
+        SELECT e.client_id,e.member_id,coalesce(sum(p.delta_cents),0)
+        FROM member_month e
+        LEFT JOIN claim c ON c.client_id=e.client_id AND c.member_id=e.member_id
+                          AND c.month_id=e.month_id
+        LEFT JOIN payment_event p ON p.claim_id=c.id
+            AND p.received_date<(SELECT starts FROM month WHERE id=:period)
+        WHERE e.month_id BETWEEN :period-12 AND :period-10
+        GROUP BY e.client_id,e.member_id HAVING count(DISTINCT e.month_id)=3
+        """,
+        {"period": period},
+    ):
+        observations[tenant, member] = paid / 100
+    return [observations.get((row[0], row[1]), row[4]) for row in rows]
+
+
 def compare(
     database: Path,
     output: Path,
     tracking: Path | None = None,
     torch_cpu: bool = False,
     shift_database: Path | None = None,
+    *,
+    strict_timeline: bool = False,
 ):
     import numpy as np
     from sklearn.ensemble import HistGradientBoostingRegressor
@@ -30,11 +54,24 @@ def compare(
 
     from train_cost import cohort
 
+    training_periods = (7, 8) if strict_timeline else (7, 10, 13)
+    validation_period = 14 if strict_timeline else 17
     with closing(
         sqlite3.connect(f"{database.resolve().as_uri()}?mode=ro", uri=True)
     ) as db:
-        history = np.concatenate([cohort(db, index) for index in (7, 10, 13)])
-        validation = cohort(db, 17)
+        if strict_timeline:
+            decisions = [(period, validation_period) for period in training_periods]
+            decisions.append((validation_period, 21))
+            for label_period, decision_period in decisions:
+                ordered = db.execute(
+                    "SELECT date(a.starts,'+3 months','+90 days') <= b.starts "
+                    "FROM month a CROSS JOIN month b WHERE a.id=? AND b.id=?",
+                    (label_period, decision_period),
+                ).fetchone()
+                if ordered != (1,):
+                    raise ValueError("Labels were not mature at the next decision date")
+        history = np.concatenate([cohort(db, index) for index in training_periods])
+        validation = cohort(db, validation_period)
         test = cohort(db, 21)
     train = history[
         (history[:, 0] == 1) & (history[:, 1] % 5 != 0) & (history[:, 1] % 7 != 0)
@@ -138,9 +175,23 @@ def compare(
                 return np.maximum(0, network(tensor).numpy().ravel() * 1000)
 
     results = {}
+    timings = {}
+    high_cost_threshold = float(np.quantile(train[:, -1], 0.90))
     for name, rows in {"validation": valid, **tests}.items():
         truth = rows[:, -1]
+        started = perf_counter()
         predictions = {"prior_quarter": rows[:, 4]}
+        if strict_timeline:
+            source = shift_database if name == "independent_population" else database
+            assert source is not None
+            with closing(
+                sqlite3.connect(source.resolve().as_uri() + "?mode=ro", uri=True)
+            ) as db:
+                predictions["seasonal_naive"] = np.asarray(
+                    seasonal(
+                        db, validation_period if name == "validation" else 21, rows
+                    )
+                )
         predictions.update(
             {
                 key: np.maximum(0, model.predict(rows[:, 2:-1]))
@@ -150,6 +201,7 @@ def compare(
         if torch_cpu:
             predictions["torch_mlp"] = neural_prediction(rows[:, 2:-1])
         results[name] = {}
+        prediction_elapsed_ms = (perf_counter() - started) * 1000
         for model_name, values in predictions.items():
             error = values - truth
             results[name][model_name] = {
@@ -158,6 +210,20 @@ def compare(
                 "p95_absolute_error_usd": float(np.quantile(np.abs(error), 0.95)),
                 "mean_error_usd": float(error.mean()),
             }
+            if strict_timeline:
+                denominator = np.abs(truth).sum()
+                high = truth >= high_cost_threshold
+                results[name][model_name]["wape_percent"] = (
+                    float(100 * np.abs(error).sum() / denominator)
+                    if denominator
+                    else None
+                )
+                results[name][model_name]["high_cost_mae_usd"] = (
+                    float(np.abs(error[high]).mean()) if np.any(high) else None
+                )
+        # Keep per-model error slices alongside overall errors.
+        for model_name, values in predictions.items():
+            error = values - truth
             for label, mask in (
                 ("standard", rows[:, 3] == 0),
                 ("high_needs", rows[:, 3] == 1),
@@ -166,15 +232,23 @@ def compare(
                     results[name][model_name][f"{label}_mae_usd"] = float(
                         np.abs(error[mask]).mean()
                     )
+        if strict_timeline:
+            timings[name] = prediction_elapsed_ms
     manifest = {
         name: {"rows": len(data), "sha256": hashlib.sha256(data.tobytes()).hexdigest()}
         for name, data in splits.items()
     }
     report = {
-        "experiment_version": "v2-cost-comparison-2",
+        "experiment_version": "v2-cost-strict-1"
+        if strict_timeline
+        else "v2-cost-comparison-2",
         "seed": 42,
         "target": "next three service months, 90-day arrival completion",
-        "periods": {"train": [7, 10, 13], "validation": 17, "test": 21},
+        "periods": {
+            "train": list(training_periods),
+            "validation": validation_period,
+            "test": 21,
+        },
         "splits": manifest,
         "metrics": results,
         "torch_cpu": torch_cpu,
@@ -185,6 +259,19 @@ def compare(
             "boosting_max_leaf_nodes": selected["hist_gradient_boosting"],
         },
     }
+    if strict_timeline:
+        report.update(
+            {
+                "environment": {
+                    "python": platform.python_version(),
+                    "os": platform.system(),
+                    "machine": platform.machine(),
+                    "processor": platform.processor(),
+                },
+                "combined_inference_and_seasonal_query_ms": timings,
+                "high_cost_threshold_usd": high_cost_threshold,
+            }
+        )
     scaler, fitted = (step[1] for step in models["ridge"].steps)
     report["ridge_standardized_coefficients"] = dict(
         zip(FEATURES, fitted.coef_.tolist())
@@ -195,9 +282,14 @@ def compare(
         "training_sha256": manifest["train"]["sha256"],
         "validation_sha256": manifest["validation"]["sha256"],
         "validation_mae_usd": results["validation"]["ridge"]["mae_usd"],
-        "baseline_validation_mae_usd": results["validation"]["prior_quarter"][
-            "mae_usd"
-        ],
+        "baseline_validation_mae_usd": min(
+            results["validation"][name]["mae_usd"]
+            for name in (
+                ("prior_quarter", "seasonal_naive")
+                if strict_timeline
+                else ("prior_quarter",)
+            )
+        ),
         "monitor_reference": {
             "feature_mean": valid[:, 2:-1].mean(axis=0).tolist(),
             "feature_std": valid[:, 2:-1].std(axis=0).tolist(),
@@ -228,6 +320,7 @@ def compare(
                         {
                             f"{split}.{model}.{metric}": value
                             for metric, value in metrics.items()
+                            if value is not None
                         }
                     )
             mlflow.log_artifact(str(output))
