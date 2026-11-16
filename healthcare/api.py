@@ -273,28 +273,20 @@ def from_environment():
             os.environ["CLAIMS_OIDC_ISSUER"],
             os.environ["CLAIMS_OIDC_AUDIENCE"],
             os.environ["CLAIMS_OIDC_JWKS_URL"],
+            os.getenv("CLAIMS_OIDC_ROLE"),
         )
     else:
         raise ValueError("CLAIMS_AUTH_MODE must be demo or oidc")
     route = rules
-    if os.getenv("CLAIMS_ENABLE_BILLED_LLM") == "1":
-        from urllib.parse import urlsplit
-
+    local_llm = os.getenv("CLAIMS_LLM_MODE") == "local"
+    if local_llm or os.getenv("CLAIMS_ENABLE_BILLED_LLM") == "1":
         from healthcare.agent import provider_router
+        from healthcare.provider import settings
 
-        endpoint = os.environ["CLAIMS_LLM_ENDPOINT"]
-        parsed = urlsplit(endpoint)
-        if (
-            parsed.scheme != "https"
-            or not parsed.hostname
-            or parsed.username is not None
-        ):
-            raise ValueError("Configure an HTTPS LLM endpoint")
-        api_key = os.environ["CLAIMS_LLM_API_KEY"]
-        model = os.environ["CLAIMS_LLM_MODEL"]
+        endpoint, api_key, model = settings(local_llm)
 
         def route(question):
-            with httpx.Client() as client:
+            with httpx.Client(trust_env=not local_llm) as client:
                 interpret, _ = provider_router(client, endpoint, api_key, model)
                 return interpret(question)
 

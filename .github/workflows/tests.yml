@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: '3.10'
       - run: pip install -r requirements-v2.txt
-      - run: ruff check healthcare test_oidc.py test_v2_ingest.py test_v2_service.py test_journal_close.py test_registry.py test_point_in_time.py test_model_monitoring.py test_financial_questions.py
+      - run: ruff check --target-version py310 healthcare test_oidc.py test_v2_ingest.py test_v2_service.py test_journal_close.py test_registry.py test_point_in_time.py test_model_monitoring.py test_financial_questions.py test_local_model.py
       - run: python -m unittest discover -v
       - run: python -m healthcare.cli smoke --database out/v2.sqlite
       - run: python -m healthcare.cli train --database out/v2.sqlite --out out/ml-smoke.json
@@ -56,3 +56,22 @@ jobs:
       - run: python export_closes.py --database out/claims.sqlite --out out/close_fact.parquet
       - run: dbt build --project-dir analytics --profiles-dir analytics
       - run: dbt build --project-dir analytics --profiles-dir analytics
+  oidc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install -r requirements-v2.txt
+      - run: python -m healthcare.local_oidc
+      - name: Verify the TLS Keycloak stack
+        run: |
+          stack=(docker compose -f compose.oidc.yaml)
+          trap '"${stack[@]}" down --volumes' EXIT
+          "${stack[@]}" up --build -d
+          curl --fail --retry 20 --retry-all-errors --retry-delay 3 --cacert out/local-oidc/ca.pem https://localhost:18443/realms/claims/.well-known/openid-configuration -o /dev/null
+          python -m healthcare.verify_local_oidc
+          "${stack[@]}" restart api
+          curl --fail --retry 15 --retry-all-errors --retry-delay 2 http://127.0.0.1:18764/ready
+          python -m healthcare.verify_local_oidc --restart-check

@@ -12,28 +12,25 @@ from healthcare.agent import evaluate_agent
 from healthcare.ingest import load_files, replay_feed
 
 
-def evaluate(path: Path, live=False):
+def evaluate(path: Path, live=False, *, local=False):
     with closing(sqlite3.connect(f"{path.resolve().as_uri()}?mode=ro", uri=True)) as db:
-        if live:
+        if live or local:
             import httpx
 
             from healthcare.agent import provider_router
+            from healthcare.provider import settings
 
-            endpoint = os.environ["CLAIMS_LLM_ENDPOINT"]
-            if not endpoint.startswith("https://"):
-                raise ValueError("CLAIMS_LLM_ENDPOINT must use HTTPS")
-            model = os.environ["CLAIMS_LLM_MODEL"]
-            with httpx.Client() as client:
-                route, usage = provider_router(
-                    client, endpoint, os.environ["CLAIMS_LLM_API_KEY"], model
-                )
+            endpoint, key, model = settings(local)
+            with httpx.Client(trust_env=not local) as client:
+                route, usage = provider_router(client, endpoint, key, model)
                 report = evaluate_agent(db, route, model)
             report["provider_requests"] = usage["requests"]
             report["reported_tokens"] = usage["tokens"]
+            report["invalid_provider_responses"] = usage["invalid_responses"]
         else:
             report = evaluate_agent(db)
             report["reported_tokens"] = 0
-    if not live and report["passed"] != report["cases"]:
+    if not (live or local) and report["passed"] != report["cases"]:
         raise RuntimeError("Financial evaluation gate failed")
     return report
 
@@ -65,7 +62,7 @@ def main():
     parser.add_argument("--out", type=Path, default=Path("out/v2-evidence.json"))
     parser.add_argument("--members", type=int, default=10000)
     parser.add_argument("--tenants", type=int, choices=(2, 3), default=2)
-    parser.add_argument("--provider", choices=("mock", "live"), default="mock")
+    parser.add_argument("--provider", choices=("mock", "live", "local"), default="mock")
     parser.add_argument("--allow-billed", action="store_true")
     parser.add_argument("--tracking", type=Path)
     parser.add_argument("--version")
@@ -92,7 +89,9 @@ def main():
     elif args.command in ("eval-agent", "release-check"):
         if args.provider == "live" and not args.allow_billed:
             parser.error("Live evaluation requires explicit --allow-billed")
-        report = evaluate(args.database, args.provider == "live")
+        report = evaluate(
+            args.database, args.provider == "live", local=args.provider == "local"
+        )
     elif args.command == "train":
         from healthcare.experiments import compare
 

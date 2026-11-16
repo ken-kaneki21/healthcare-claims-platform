@@ -137,3 +137,5 @@ The next release should add a source manifest and incremental extraction. See [p
 - [Deployment and identity](docs/deployment.md)
 - [Engineering case studies](docs/case-studies.md)
 - [Verification and release status](docs/IMPLEMENTATION_STATUS.md)
+
+[Local Keycloak and offline inference quickstart](docs/deployment.md#local-tls-identity-and-inference-verification)

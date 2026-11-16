@@ -1,0 +1,13 @@
+services:
+  llm:
+    image: ghcr.io/ggml-org/llama.cpp:server@sha256:7751a6c0dc3d019c231d42678abbb0fac1a13a24c17c956109ed27533139f280
+    command: [--model, /models/qwen.gguf, --alias, qwen2.5-1.5b-instruct-q4_k_m, --host, 0.0.0.0, --port, "8080", --ctx-size, "2048", --parallel, "1", --threads, "5"]
+    ports:
+      - "127.0.0.1:18765:8080"
+    volumes:
+      - ./out/qwen2.5-1.5b-instruct-q4_k_m.gguf:/models/qwen.gguf:ro
+  api:
+    environment:
+      CLAIMS_LLM_MODE: local
+      CLAIMS_LLM_ENDPOINT: http://llm:8080/v1/chat/completions
+      CLAIMS_LLM_MODEL: qwen2.5-1.5b-instruct-q4_k_m

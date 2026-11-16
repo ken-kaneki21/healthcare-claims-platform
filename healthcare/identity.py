@@ -4,7 +4,9 @@ from urllib.parse import urlsplit
 
 
 class OidcIdentity:
-    def __init__(self, issuer: str, audience: str, jwks_url: str):
+    def __init__(
+        self, issuer: str, audience: str, jwks_url: str, role: str | None = None
+    ):
         import jwt
 
         for address in (issuer, jwks_url):
@@ -21,6 +23,7 @@ class OidcIdentity:
             raise ValueError("OIDC audience is required")
         self.issuer = issuer
         self.audience = audience
+        self.role = role
         self.keys = jwt.PyJWKClient(jwks_url, lifespan=300, timeout=3)
 
     def __call__(self, token: str) -> int:
@@ -56,11 +59,17 @@ class OidcIdentity:
             raise ValueError("Invalid access token") from error
         tenant = claims["tenant_id"]
         scope = claims["scope"]
+        realm_access = claims.get("realm_access")
+        roles = realm_access.get("roles") if isinstance(realm_access, dict) else None
         if (
             type(tenant) is not int
             or tenant not in (1, 2, 3)
             or not isinstance(scope, str)
             or "claims:read" not in scope.split()
+            or (
+                self.role is not None
+                and (not isinstance(roles, list) or self.role not in roles)
+            )
         ):
             raise ValueError("Access token lacks claims authorization")
         return tenant

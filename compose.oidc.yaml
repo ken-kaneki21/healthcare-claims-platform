@@ -1,0 +1,31 @@
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.0@sha256:27b3230fbabb8c9ff3c66c864cf09dcd8a41aca82e5100679d109ef0eeb05741
+    command: [start-dev, --import-realm, --hostname=https://localhost:18443, --http-enabled=false, --https-certificate-file=/dev-config/server.pem, --https-certificate-key-file=/dev-config/server-key.pem]
+    ports:
+      - "127.0.0.1:18443:8443"
+    volumes:
+      - ./out/local-oidc/server.pem:/dev-config/server.pem:ro
+      - ./out/local-oidc/server-key.pem:/dev-config/server-key.pem:ro
+      - ./out/local-oidc/claims-realm.json:/opt/keycloak/data/import/claims-realm.json:ro
+  api:
+    build: .
+    read_only: true
+    mem_limit: 256m
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "127.0.0.1:18764:8000"
+    environment:
+      CLAIMS_AUTH_MODE: oidc
+      CLAIMS_OIDC_ISSUER: https://localhost:18443/realms/claims
+      CLAIMS_OIDC_AUDIENCE: claims-api
+      CLAIMS_OIDC_JWKS_URL: https://keycloak:8443/realms/claims/protocol/openid-connect/certs
+      CLAIMS_OIDC_ROLE: claims-analyst
+      SSL_CERT_FILE: /dev-config/ca.pem
+      CLAIMS_DATABASE: /data/claims.sqlite
+      CLAIMS_PREDICTIONS: /data/predictions.csv
+    volumes:
+      - ./out/local-oidc/ca.pem:/dev-config/ca.pem:ro
+      - ./out/local-oidc/claims.sqlite:/data/claims.sqlite:ro
+      - ./out/local-oidc/predictions.csv:/data/predictions.csv:ro
