@@ -14,6 +14,23 @@ SCHEMA_PATH = Path(__file__).with_name("platform.sql")
 
 def materialize_closes(db, *, from_journal=False):
     delivery_relation = "approved_delivery" if from_journal else "claim_delivery"
+    versioned_rules = db.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='view' AND name='effective_client_rule'"
+    ).fetchone() is not None
+    rule_join = (
+        "JOIN effective_client_rule v ON v.client_id=e.client_id AND v.month_id=e.month_id"
+        if versioned_rules else ""
+    )
+    risk_month = (
+        "e.month_id-(e.month_id-v.effective_month)%v.risk_period_months"
+        if versioned_rules else "1+((e.month_id-1)/3)*3"
+    )
+    factor = "*v.benchmark_basis_points/10000" if versioned_rules else ""
+    rule_version = (
+        "synthetic-2"
+        if versioned_rules and db.execute("SELECT count(*) FROM client").fetchone()[0] == 3
+        else "synthetic-1"
+    )
     db.executescript("""
         CREATE TABLE close_run(id TEXT PRIMARY KEY, cutoff TEXT NOT NULL, rules_version TEXT NOT NULL);
         CREATE TABLE close_fact(
@@ -25,7 +42,7 @@ def materialize_closes(db, *, from_journal=False):
     checks = []
     for run, cutoff in CLOSES:
         started = perf_counter()
-        db.execute("INSERT INTO close_run VALUES (?, ?, 'synthetic-1')", (run, cutoff))
+        db.execute("INSERT INTO close_run VALUES (?, ?, ?)", (run, cutoff, rule_version))
         db.execute(f"""
             CREATE TEMP TABLE observed AS
             WITH versions AS (
@@ -55,16 +72,17 @@ def materialize_closes(db, *, from_journal=False):
         if differences:
             raise RuntimeError(f"{run}: payment ledger and delivery rollup differ on {differences} rows")
         db.execute("CREATE UNIQUE INDEX observed_key ON observed(client_id,member_id,month_id)")
-        db.execute("""
+        db.execute(f"""
             INSERT INTO close_fact
             SELECT ?,e.client_id,e.member_id,e.month_id,COALESCE(o.paid,0),
-                   r.cents*s.risk_basis_points/10000
+                   r.cents*s.risk_basis_points{factor}/10000
             FROM member_month e
             JOIN member m ON m.client_id=e.client_id AND m.id=e.member_id
             JOIN month d ON d.id=e.month_id
             JOIN provider p ON p.client_id=e.client_id AND p.id=e.provider_id
+            {rule_join}
             LEFT JOIN risk_snapshot s ON s.client_id=e.client_id AND s.member_id=e.member_id
-                 AND s.month_id=1+((e.month_id-1)/3)*3
+                 AND s.month_id={risk_month}
             LEFT JOIN rate r ON r.client_id=e.client_id AND r.region=p.region
                  AND r.year=CAST(substr(d.starts,1,4) AS INTEGER) AND r.cohort=m.cohort
             LEFT JOIN observed o

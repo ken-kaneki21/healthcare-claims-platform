@@ -40,6 +40,14 @@ class JournalCloseTests(unittest.TestCase):
                 [row["paid_cents"] for row in baseline["closes"]],
             )
             with closing(sqlite3.connect(output)) as db:
+                self.assertEqual(
+                    db.execute(
+                        "SELECT version,risk_period_months,benchmark_basis_points "
+                        "FROM effective_client_rule WHERE client_id=3 AND month_id IN (12,13) "
+                        "ORDER BY month_id"
+                    ).fetchall(),
+                    [("2024-v1", 3, 10000), ("2025-v1", 2, 10300)],
+                )
                 db.execute("ATTACH DATABASE ? AS baseline", (str(source),))
                 for left, right in (("main", "baseline"), ("baseline", "main")):
                     self.assertIsNone(

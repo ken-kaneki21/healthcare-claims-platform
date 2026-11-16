@@ -25,6 +25,39 @@ CREATE TABLE month(id INTEGER PRIMARY KEY, starts TEXT UNIQUE NOT NULL);
 INSERT INTO month
 SELECT id,date('2024-01-01',printf('+%d months',id-1))
 FROM numbers CROSS JOIN config WHERE id<=months;
+CREATE TABLE client_rule(
+    client_id INTEGER REFERENCES client(id),
+    effective_month INTEGER REFERENCES month(id),
+    version TEXT NOT NULL,
+    entry_modulus INTEGER NOT NULL CHECK(entry_modulus > 0),
+    exit_modulus INTEGER NOT NULL CHECK(exit_modulus > 0),
+    attribution_modulus INTEGER NOT NULL CHECK(attribution_modulus > 0),
+    attribution_offset INTEGER NOT NULL,
+    risk_period_months INTEGER NOT NULL CHECK(risk_period_months IN (1,2,3,6,12)),
+    benchmark_basis_points INTEGER NOT NULL CHECK(benchmark_basis_points > 0),
+    PRIMARY KEY(client_id,effective_month),
+    UNIQUE(client_id,version)
+) WITHOUT ROWID;
+INSERT INTO client_rule
+SELECT c.id,1,'2024-v1',
+       CASE WHEN tenants=2 THEN 7 ELSE 4+c.id*2 END,
+       CASE WHEN tenants=2 THEN 13 ELSE 7+c.id*2 END,
+       9,0,3,10000
+FROM client c CROSS JOIN config;
+INSERT INTO client_rule
+SELECT c.id,13,'2025-v1',r.entry_modulus,r.exit_modulus,
+       CASE WHEN tenants=2 THEN 9 ELSE 7+c.id END,
+       CASE WHEN tenants=2 THEN 1 ELSE c.id END,
+       CASE WHEN tenants=3 AND c.id=3 THEN 2 ELSE 3 END,
+       CASE WHEN tenants=2 THEN 10000 ELSE 9700+c.id*200 END
+FROM client c JOIN client_rule r ON r.client_id=c.id AND r.effective_month=1
+CROSS JOIN config;
+CREATE VIEW effective_client_rule AS
+SELECT r.*, d.id AS month_id FROM month d JOIN client_rule r
+ON r.effective_month=(
+    SELECT max(v.effective_month) FROM client_rule v
+    WHERE v.client_id=r.client_id AND v.effective_month<=d.id
+);
 CREATE TABLE member_month(
     client_id INTEGER, member_id INTEGER, month_id INTEGER REFERENCES month(id),
     provider_id INTEGER NOT NULL,
@@ -34,10 +67,11 @@ CREATE TABLE member_month(
 ) WITHOUT ROWID;
 INSERT INTO member_month
 SELECT m.client_id,m.id,d.id,
-  CASE WHEN d.id>=13 AND m.id%9=0 THEN 1+m.assigned_provider%250 ELSE m.assigned_provider END
-FROM member m CROSS JOIN month d
-WHERE d.id>CASE WHEN m.id%7=0 THEN m.id%4 ELSE 0 END
-  AND d.id<=(SELECT months FROM config)-CASE WHEN m.id%13=0 THEN m.id%5 ELSE 0 END;
+  CASE WHEN m.id%r.attribution_modulus=0
+       THEN 1+(m.assigned_provider-1+r.attribution_offset)%250 ELSE m.assigned_provider END
+FROM member m JOIN effective_client_rule r USING(client_id) JOIN month d ON d.id=r.month_id
+WHERE d.id>CASE WHEN m.id%r.entry_modulus=0 THEN m.id%4 ELSE 0 END
+  AND d.id<=(SELECT months FROM config)-CASE WHEN m.id%r.exit_modulus=0 THEN m.id%5 ELSE 0 END;
 
 CREATE TABLE member_alias(
     client_id INTEGER, member_id INTEGER, alias TEXT, valid_from INTEGER, valid_until INTEGER,
@@ -66,7 +100,8 @@ CREATE TABLE risk_snapshot(
 INSERT INTO risk_snapshot
 SELECT m.client_id,m.id,d.id,
        CASE WHEN (m.id+d.id)%149<>0 THEN 6700+m.age_band*500+m.propensity*321+(m.id*d.id)%1900 END
-FROM member m CROSS JOIN month d WHERE (d.id-1)%3=0;
+FROM member m JOIN effective_client_rule r USING(client_id) JOIN month d ON d.id=r.month_id
+WHERE (d.id-r.effective_month)%r.risk_period_months=0;
 
 CREATE TABLE claim(
     id INTEGER PRIMARY KEY,client_id INTEGER,member_id INTEGER,month_id INTEGER,

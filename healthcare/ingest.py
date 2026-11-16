@@ -8,6 +8,7 @@ import sqlite3
 from contextlib import closing
 from dataclasses import asdict, dataclass
 from datetime import date, datetime
+from itertools import islice
 from pathlib import Path
 
 FIELDS = ("claim_id", "line_no", "version", "received_date", "replacement_cents")
@@ -148,37 +149,51 @@ def _load(
         if manifest.watermark != previous + 1:
             raise ValueError("Missing or out-of-order watermark")
         count = inserted = 0
-        for count, row in enumerate(rows, 1):
-            claim, line, revision, received, cents = row
-            ids = (int(claim), int(line), int(revision))
-            if min(ids) < 1 or int(cents) < 0:
-                raise ValueError("Invalid claim key or replacement amount")
-            received = date.fromisoformat(received).isoformat()
-            if (
-                reference is not None
-                and not reference.execute(
-                    "SELECT 1 FROM claim WHERE id=? AND client_id=?",
-                    (ids[0], manifest.tenant),
-                ).fetchone()
-            ):
-                raise ValueError("Claim reference is outside the tenant or absent")
-            delivery_key = (manifest.tenant, *ids)
-            values = (received, int(cents))
-            existing = db.execute(
-                "SELECT received_date,replacement_cents FROM delivery "
-                "WHERE tenant=? AND claim_id=? AND line_no=? AND version=?",
-                delivery_key,
-            ).fetchone()
-            if existing and tuple(existing) != values:
-                raise ValueError("Same claim version has conflicting payloads")
-            if existing is None:
-                db.execute(
-                    "INSERT INTO delivery VALUES (?,?,?,?,?,?,?,?)",
-                    (*delivery_key, *values, manifest.source, manifest.watermark),
+        while chunk := list(islice(rows, 500)):
+            batch = []
+            for claim, line, revision, received, cents in chunk:
+                ids = (int(claim), int(line), int(revision))
+                amount = int(cents)
+                if min(ids) < 1 or amount < 0 or max(*ids, amount) >= 2**63:
+                    raise ValueError("Invalid claim key or replacement amount")
+                received = date.fromisoformat(received).isoformat()
+                batch.append((manifest.tenant, *ids, received, amount, *key[1:]))
+            if reference is not None:
+                claim_ids = {row[1] for row in batch}
+                placeholders = ",".join("?" for _ in claim_ids)
+                matched = reference.execute(
+                    f"SELECT count(*) FROM claim WHERE client_id=? AND id IN ({placeholders})",
+                    (manifest.tenant, *claim_ids),
+                ).fetchone()[0]
+                if matched != len(claim_ids):
+                    raise ValueError("Claim reference is outside the tenant or absent")
+            try:
+                # Exact duplicates are no-ops. A differing payload deliberately
+                # hits the NOT NULL constraint so the whole manifest rolls back.
+                cursor = db.executemany(
+                    """
+                    INSERT INTO delivery VALUES (?,?,?,?,?,?,?,?)
+                    ON CONFLICT(tenant,claim_id,line_no,version) DO UPDATE
+                    SET replacement_cents=NULL
+                    WHERE delivery.received_date<>excluded.received_date
+                       OR delivery.replacement_cents<>excluded.replacement_cents
+                    """,
+                    batch,
                 )
-                inserted += 1
-            if interrupt_after == count:
+            except sqlite3.IntegrityError as error:
+                if error.args != (
+                    "NOT NULL constraint failed: delivery.replacement_cents",
+                ):
+                    raise
+                raise ValueError(
+                    "Same claim version has conflicting payloads"
+                ) from error
+            inserted += cursor.rowcount
+            if interrupt_after is not None and count < interrupt_after <= count + len(
+                batch
+            ):
                 raise RuntimeError("Simulated interruption")
+            count += len(batch)
         if count != manifest.records:
             raise ValueError("Record count does not match manifest")
         db.execute("INSERT INTO batch VALUES (?,?,?,?)", (*key, serialized))
@@ -211,7 +226,12 @@ def load_files(
 
 
 def replay_feed(
-    reference_path: Path, journal: Path, tenant: int, batch_size: int = 10_000
+    reference_path: Path,
+    journal: Path,
+    tenant: int,
+    batch_size: int = 10_000,
+    *,
+    max_batches: int | None = None,
 ):
     """Read generated delivery pages in source-ID order and commit each manifest atomically."""
     schema = CLIENT_SCHEMAS.get(tenant)
@@ -219,6 +239,8 @@ def replay_feed(
         raise ValueError("Unknown fictional tenant")
     if not 1 <= batch_size <= 50_000:
         raise ValueError("Batch size must be between 1 and 50,000")
+    if max_batches is not None and max_batches < 1:
+        raise ValueError("Max batches must be positive")
     journal.parent.mkdir(parents=True, exist_ok=True)
     cutoff = "2026-03-31T23:59:59+00:00"
     last_id = watermark = count = inserted = 0
@@ -228,11 +250,13 @@ def replay_feed(
         ) as source,
         closing(sqlite3.connect(journal)) as target,
     ):
-        while True:
+        # Drive pagination from the delivery primary key. A regular JOIN can
+        # start from the tenant index and sort the remaining deliveries per page.
+        while max_batches is None or watermark < max_batches:
             rows = source.execute(
                 """
                 SELECT d.id,d.claim_id,d.line_no,d.version,d.received_date,d.replacement_cents
-                FROM claim_delivery d JOIN claim c ON c.id=d.claim_id
+                FROM claim_delivery d CROSS JOIN claim c ON c.id=d.claim_id
                 WHERE d.id>? AND c.client_id=? ORDER BY d.id LIMIT ?
             """,
                 (last_id, tenant, batch_size),
