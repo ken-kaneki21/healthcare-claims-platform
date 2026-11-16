@@ -11,3 +11,5 @@ The V2 search selects ridge alpha and boosting leaf count by validation MAE. The
 ## Patched CPU training environment
 
 Use Python 3.14 for the separate CPU training experiment. Install the standard libraries with `python -m pip install -r requirements-training.txt`, then install `torch==2.15.0+cpu` from `https://download.pytorch.org/whl/cpu`. The Ubuntu CI demo remains compatible with the original Python 3.10 requirements. The serving container uses only its separately resolved dependencies.
+
+The release smoke checked the ridge prediction endpoint for all three fictional tenants using Keycloak access tokens, and checked prediction recovery after restart. The training/runtime dependencies and CPU PyTorch experiment remain separate from the serving stack.

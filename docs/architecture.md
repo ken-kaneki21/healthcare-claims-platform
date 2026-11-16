@@ -35,3 +35,5 @@ flowchart LR
   Registry --> Batch["Versioned prediction CSV"]
   Batch --> API
 ```
+
+The live local reference stack adds TLS Keycloak and Qwen inference as separate containers. Keycloak issues signed access tokens with tenant, scope and role claims. The API uses the model to propose an operation, then runs parameterized SQLite queries and builds the user-facing evidence from those rows. Model, identity and API processes communicate on the Compose network, with development endpoints on loopback.

@@ -10,9 +10,9 @@ This branch starts from main commit `3073a277129f0964500643e4dd64f44edff37f98`. 
 | R3 Scale | Done locally | Fresh 1K, 10K and 50K recovery benchmarks and replay parity are recorded in the evidence. |
 | R4 Training | Done locally | Validation-only search, point-in-time tests, cohort errors, coefficient analysis and independent seed-113 and seed-291 evaluations passed. |
 | R5 Model operations | Done locally | Promoted the tuned signed candidate, generated 50,000 predictions, flagged one synthetic tenant for drift, and restored and reran the prior version. |
-| R6 Financial AI | Partial | 159 authored question cases and 281 deterministic ledger and policy cases passed. A live LLM provider was unavailable. |
-| R7 Service | Partial | An OIDC signature fixture, local Docker runtime and Python dependency scans passed. A real OIDC issuer and cloud environment remain unverified. The CPU wheel needs exact-variant advisory coverage. |
-| R8 Publication | Partial | Evidence, case studies, updated repository metadata and an updated draft PR are published. A final merge and tag are pending release acceptance. |
+| R6 Financial AI | Done for local scope | Guarded Qwen model and deterministic financial tools passed the authored live retest. See the evaluation evidence for model invocations, metrics and prior failures. |
+| R7 Service | Done for local scope | Real Keycloak issuance, tenant isolation, Docker restart and serving-image OS and Python scans passed. Cloud deployment remains unverified. |
+| R8 Publication | Release verification | See the GitHub pull request and release record for publication status. |
 
 ## Reproduced measurements
 
@@ -80,3 +80,11 @@ Windows, AMD Ryzen 5 5600H, Python 3.10, storage in the OneDrive workspace. Each
 At 50K, the journal contained 2,854,878 unique versions in a 220,053,504-byte database. The source database was 484,765,696 bytes. Journal throughput was 3,492 deliveries per second. Both closes reconciled 1,181,592 member-months apiece with zero row or ledger differences against the frozen baseline. The observed full ingestion time moved from 1,009.52 to 853.04 seconds. The runs shared a machine and dataset shape, with differing concurrent load, so the paired profiling comparison is stronger evidence for the cause.
 
 On the same 1,000-member source, paired cProfile runs counted 176,251 direct SQLite execute calls before the change and 157 direct calls plus 120 executemany calls after it. Workspace runtime went from 8.906 to 1.046 seconds. The local temporary directory showed the same pattern. At 10K, extraction-only timing went from 6.81 to 1.39 seconds after replacing a repeated temporary sort with a primary-key range scan. See [benchmark results](evidence/v2-scale-and-analytics.json) for raw counts, memory, sizes and outputs.
+
+## Local release verification
+
+A fresh 50,000-member regression generated 1,727,344 claims and 2,979,003 deliveries. Both original and revised closes reconciled 1,181,592 member-months with zero differences against the independent ledger. The fresh build took 144.26 seconds. This run measured generation and closes. The earlier journal-ingestion and memory figures remain the historical benchmark.
+
+The local Keycloak stack verified signed tokens against real TLS discovery and JWKS, enforced scope and role, and isolated all three fictional tenants on finance, prediction and agent paths. It recovered after an API restart. The local CPU model-backed agent matched the financial tool on an authenticated natural-language request. Use the evidence links and [release notes](RELEASE.md) for exact scope.
+
+The release regression also rebuilt three dbt models and ran three dbt tests across an incremental rerun and full refresh. All 144 finance rows matched. The model training smoke completed and the full test suite passed 19 Python tests, Ruff, and the targeted type check. [Identity, container, and data evidence](evidence/v2-local-release-verification.json) and [live-model evidence](evidence/v2-live-llm-evaluation.json) contain the redacted outputs.

@@ -49,3 +49,7 @@ All workloads use fictional clients and synthetic records. See [verification evi
 **Implementation.** Tool routing is restricted to approved operations and periods. SQL supplies every amount. The API validates issuer, audience, expiry and scope for OIDC access tokens. The hosted question adapter is opt-in.
 
 **Verification and trade-off.** The parameterized suite passed 281 cases. A separate authored suite passed 159 questions, with a separate numeric ledger assertion for two-month PMPM. The OIDC test used signed access-token fixtures, and real Docker recovered its prediction after restart. Live model quality and cloud identity verification depend on a configured environment.
+
+### Local release retest
+
+The real Keycloak stack validated the issuer, audience, scope, role, expiry and signature, and rejected cross-tenant finance, prediction and agent access. A guarded Qwen-backed question matched the authenticated financial endpoint. Across 135 authored scenarios, 65 used real model inference. All 135 passed after adding the tool schema and deterministic constraints for explicit metric names. The initial model prompt failed 36 scenarios, and schema-only routing still returned answers to ten unsupported requests. These failure cases drove the tool and scope constraints.

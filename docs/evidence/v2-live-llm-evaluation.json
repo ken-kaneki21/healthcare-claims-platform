@@ -1,0 +1,1296 @@
+{
+  "provider": "llama.cpp local CPU",
+  "model": "Qwen2.5-1.5B-Instruct Q4_K_M",
+  "model_sha256": "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e",
+  "inference_image": "ghcr.io/ggml-org/llama.cpp:server@sha256:7751a6c0dc3d019c231d42678abbb0fac1a13a24c17c956109ed27533139f280",
+  "authored": {
+    "model": "qwen2.5-1.5b-instruct-q4_k_m",
+    "prompt": "finance-router-v4",
+    "authored_cases": true,
+    "rules": {
+      "cases": 135,
+      "cases_using_model": 0,
+      "financial_cases": 44,
+      "financial_cases_using_model": 0,
+      "numeric_correct": 44,
+      "evidence_correct": 44,
+      "financial_tool_correct": 44,
+      "passed": 135,
+      "refusal_cases": 91,
+      "refusal_status_correct": 91,
+      "unsupported_answers": 0,
+      "requests": 0,
+      "tokens": 0,
+      "p50_ms": 0.008400005754083395,
+      "p95_ms": 9.442480001598597,
+      "failures": []
+    },
+    "model_assisted": {
+      "cases": 135,
+      "cases_using_model": 65,
+      "financial_cases": 44,
+      "financial_cases_using_model": 28,
+      "numeric_correct": 44,
+      "evidence_correct": 44,
+      "financial_tool_correct": 44,
+      "passed": 135,
+      "refusal_cases": 91,
+      "refusal_status_correct": 91,
+      "unsupported_answers": 0,
+      "requests": 65,
+      "tokens": 8638,
+      "p50_ms": 18.165300018154085,
+      "p95_ms": 1630.409290024545,
+      "failures": []
+    },
+    "provider_cost_usd": 0
+  },
+  "ledger_and_policy": {
+    "evaluation_version": "finance-gold-2",
+    "provider": "qwen2.5-1.5b-instruct-q4_k_m",
+    "cases": 281,
+    "passed": 281,
+    "numeric_correct": 216,
+    "tool_correct": 216,
+    "evidence_correct": 216,
+    "financial_cases": 216,
+    "by_expected_status": {
+      "ambiguous": {
+        "cases": 1,
+        "passed": 1
+      },
+      "denied": {
+        "cases": 31,
+        "passed": 31
+      },
+      "no_evidence": {
+        "cases": 30,
+        "passed": 30
+      },
+      "ok": {
+        "cases": 216,
+        "passed": 216
+      },
+      "unsupported": {
+        "cases": 3,
+        "passed": 3
+      }
+    },
+    "failure_categories": {},
+    "p50_ms": 839.934199990239,
+    "p95_ms": 2044.2172000184655,
+    "provider_requests": 247,
+    "reported_tokens": 31034,
+    "invalid_provider_responses": 0
+  },
+  "hosted_provider_cost_usd": 0,
+  "historical_failed_runs": {
+    "interrupted_authored": {
+      "report": {
+        "cases": 135,
+        "cases_using_model": 65,
+        "financial_cases": 44,
+        "financial_cases_using_model": 28,
+        "numeric_correct": 33,
+        "evidence_correct": 33,
+        "financial_tool_correct": 33,
+        "passed": 87,
+        "refusal_cases": 91,
+        "refusal_status_correct": 54,
+        "unsupported_answers": 0,
+        "requests": 65,
+        "tokens": 2280,
+        "p50_ms": 6.726799998432398,
+        "p95_ms": 1858.831950003514,
+        "failures": [
+          {
+            "fixture_line": 18,
+            "model_invoked": true,
+            "expected_status": "ok",
+            "actual_status": "RemoteProtocolError",
+            "expected_tool": "pmpm",
+            "actual_tool": null,
+            "values_match": false,
+            "evidence_matches": false
+          },
+          {
+            "fixture_line": 19,
+            "model_invoked": true,
+            "expected_status": "ok",
+            "actual_status": "RemoteProtocolError",
+            "expected_tool": "benchmark_coverage",
+            "actual_tool": null,
+            "values_match": false,
+            "evidence_matches": false
+          },
+          {
+            "fixture_line": 20,
+            "model_invoked": true,
+            "expected_status": "ok",
+            "actual_status": "RemoteProtocolError",
+            "expected_tool": "restatement",
+            "actual_tool": null,
+            "values_match": false,
+            "evidence_matches": false
+          },
+          {
+            "fixture_line": 21,
+            "model_invoked": true,
+            "expected_status": "ok",
+            "actual_status": "RemoteProtocolError",
+            "expected_tool": "close",
+            "actual_tool": null,
+            "values_match": false,
+            "evidence_matches": false
+          },
+          {
+            "fixture_line": 22,
+            "model_invoked": true,
+            "expected_status": "ok",
+            "actual_status": "RemoteProtocolError",
+            "expected_tool": "pmpm",
+            "actual_tool": null,
+            "values_match": false,
+            "evidence_matches": false
+          },
+          {
+            "fixture_line": 23,
+            "model_invoked": true,
+            "expected_status": "ok",
+            "actual_status": "RemoteProtocolError",
+            "expected_tool": "benchmark_coverage",
+            "actual_tool": null,
+            "values_match": false,
+            "evidence_matches": false
+          },
+          {
+            "fixture_line": 24,
+            "model_invoked": true,
+            "expected_status": "ok",
+            "actual_status": "RemoteProtocolError",
+            "expected_tool": "restatement",
+            "actual_tool": null,
+            "values_match": false,
+            "evidence_matches": false
+          },
+          {
+            "fixture_line": 25,
+            "model_invoked": true,
+            "expected_status": "ok",
+            "actual_status": "RemoteProtocolError",
+            "expected_tool": "close",
+            "actual_tool": null,
+            "values_match": false,
+            "evidence_matches": false
+          },
+          {
+            "fixture_line": 26,
+            "model_invoked": true,
+            "expected_status": "ok",
+            "actual_status": "RemoteProtocolError",
+            "expected_tool": "pmpm",
+            "actual_tool": null,
+            "values_match": false,
+            "evidence_matches": false
+          },
+          {
+            "fixture_line": 27,
+            "model_invoked": true,
+            "expected_status": "ok",
+            "actual_status": "RemoteProtocolError",
+            "expected_tool": "benchmark_coverage",
+            "actual_tool": null,
+            "values_match": false,
+            "evidence_matches": false
+          },
+          {
+            "fixture_line": 28,
+            "model_invoked": true,
+            "expected_status": "ok",
+            "actual_status": "RemoteProtocolError",
+            "expected_tool": "restatement",
+            "actual_tool": null,
+            "values_match": false,
+            "evidence_matches": false
+          },
+          {
+            "fixture_line": 45,
+            "model_invoked": true,
+            "expected_status": "no_evidence",
+            "actual_status": "RemoteProtocolError",
+            "expected_tool": "close",
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 46,
+            "model_invoked": true,
+            "expected_status": "no_evidence",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": "pmpm",
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 47,
+            "model_invoked": true,
+            "expected_status": "no_evidence",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": "benchmark_coverage",
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 48,
+            "model_invoked": true,
+            "expected_status": "no_evidence",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": "restatement",
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 50,
+            "model_invoked": true,
+            "expected_status": "no_evidence",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": "close",
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 51,
+            "model_invoked": true,
+            "expected_status": "no_evidence",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": "pmpm",
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 52,
+            "model_invoked": true,
+            "expected_status": "no_evidence",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": "benchmark_coverage",
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 54,
+            "model_invoked": true,
+            "expected_status": "no_evidence",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": "restatement",
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 55,
+            "model_invoked": true,
+            "expected_status": "no_evidence",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": "close",
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 56,
+            "model_invoked": true,
+            "expected_status": "no_evidence",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": "benchmark_coverage",
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 58,
+            "model_invoked": true,
+            "expected_status": "no_evidence",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": "pmpm",
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 59,
+            "model_invoked": true,
+            "expected_status": "no_evidence",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": "restatement",
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 60,
+            "model_invoked": true,
+            "expected_status": "no_evidence",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": "close",
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 62,
+            "model_invoked": true,
+            "expected_status": "no_evidence",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": "benchmark_coverage",
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 63,
+            "model_invoked": true,
+            "expected_status": "no_evidence",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": "pmpm",
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 64,
+            "model_invoked": true,
+            "expected_status": "no_evidence",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": "restatement",
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 80,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 81,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 82,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 83,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 84,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 85,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 86,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 89,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 90,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 91,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 93,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 94,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 95,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 96,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 97,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 98,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 100,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 101,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 102,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 103,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          },
+          {
+            "fixture_line": 105,
+            "model_invoked": true,
+            "expected_status": "unsupported",
+            "actual_status": "HTTPStatusError",
+            "expected_tool": null,
+            "actual_tool": null,
+            "values_match": true,
+            "evidence_matches": true
+          }
+        ]
+      },
+      "note": "The inference container restarted during the run. Transport failures made this unsuitable as a model-quality score."
+    },
+    "initial_ledger": {
+      "evaluation_version": "finance-gold-2",
+      "provider": "qwen2.5-1.5b-instruct-q4_k_m",
+      "cases": 281,
+      "passed": 134,
+      "numeric_correct": 99,
+      "tool_correct": 99,
+      "evidence_correct": 99,
+      "financial_cases": 216,
+      "by_expected_status": {
+        "ambiguous": {
+          "cases": 1,
+          "passed": 1
+        },
+        "denied": {
+          "cases": 31,
+          "passed": 31
+        },
+        "no_evidence": {
+          "cases": 30,
+          "passed": 0
+        },
+        "ok": {
+          "cases": 216,
+          "passed": 99
+        },
+        "unsupported": {
+          "cases": 3,
+          "passed": 3
+        }
+      },
+      "failure_categories": {
+        "ok_expected__unsupported_returned": 117,
+        "no_evidence_expected__unsupported_returned": 30
+      },
+      "p50_ms": 1345.0390999787487,
+      "p95_ms": 6604.349400033243,
+      "provider_requests": 247,
+      "reported_tokens": 37956,
+      "invalid_provider_responses": 0
+    },
+    "schema_only_authored": {
+      "cases": 135,
+      "cases_using_model": 65,
+      "financial_cases": 44,
+      "financial_cases_using_model": 28,
+      "numeric_correct": 33,
+      "evidence_correct": 40,
+      "financial_tool_correct": 33,
+      "passed": 109,
+      "refusal_cases": 91,
+      "refusal_status_correct": 78,
+      "unsupported_answers": 10,
+      "requests": 65,
+      "tokens": 7928,
+      "p50_ms": 21.71160001307726,
+      "p95_ms": 4329.174590011826,
+      "failures": [
+        {
+          "fixture_line": 2,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "ok",
+          "expected_tool": "pmpm",
+          "actual_tool": "close",
+          "values_match": false,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 3,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "benchmark_coverage",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 4,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "ok",
+          "expected_tool": "restatement",
+          "actual_tool": "close",
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 8,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "ok",
+          "expected_tool": "restatement",
+          "actual_tool": "close",
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 10,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "ok",
+          "expected_tool": "pmpm",
+          "actual_tool": "close",
+          "values_match": false,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 11,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "ok",
+          "expected_tool": "benchmark_coverage",
+          "actual_tool": "close",
+          "values_match": false,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 14,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "ok",
+          "expected_tool": "pmpm",
+          "actual_tool": "close",
+          "values_match": false,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 18,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "ok",
+          "expected_tool": "pmpm",
+          "actual_tool": "close",
+          "values_match": false,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 20,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "ok",
+          "expected_tool": "restatement",
+          "actual_tool": "close",
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 22,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "ok",
+          "expected_tool": "pmpm",
+          "actual_tool": "close",
+          "values_match": false,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 26,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "ok",
+          "expected_tool": "pmpm",
+          "actual_tool": "close",
+          "values_match": false,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 46,
+          "model_invoked": true,
+          "expected_status": "no_evidence",
+          "actual_status": "unsupported",
+          "expected_tool": "pmpm",
+          "actual_tool": null,
+          "values_match": true,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 47,
+          "model_invoked": true,
+          "expected_status": "no_evidence",
+          "actual_status": "no_evidence",
+          "expected_tool": "benchmark_coverage",
+          "actual_tool": "close",
+          "values_match": true,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 51,
+          "model_invoked": true,
+          "expected_status": "no_evidence",
+          "actual_status": "unsupported",
+          "expected_tool": "pmpm",
+          "actual_tool": null,
+          "values_match": true,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 58,
+          "model_invoked": true,
+          "expected_status": "no_evidence",
+          "actual_status": "unsupported",
+          "expected_tool": "pmpm",
+          "actual_tool": null,
+          "values_match": true,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 64,
+          "model_invoked": true,
+          "expected_status": "no_evidence",
+          "actual_status": "no_evidence",
+          "expected_tool": "restatement",
+          "actual_tool": "close",
+          "values_match": true,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 80,
+          "model_invoked": true,
+          "expected_status": "unsupported",
+          "actual_status": "ok",
+          "expected_tool": null,
+          "actual_tool": "restatement",
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 83,
+          "model_invoked": true,
+          "expected_status": "unsupported",
+          "actual_status": "ok",
+          "expected_tool": null,
+          "actual_tool": "restatement",
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 84,
+          "model_invoked": true,
+          "expected_status": "unsupported",
+          "actual_status": "ok",
+          "expected_tool": null,
+          "actual_tool": "close",
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 85,
+          "model_invoked": true,
+          "expected_status": "unsupported",
+          "actual_status": "ok",
+          "expected_tool": null,
+          "actual_tool": "close",
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 89,
+          "model_invoked": true,
+          "expected_status": "unsupported",
+          "actual_status": "ok",
+          "expected_tool": null,
+          "actual_tool": "close",
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 93,
+          "model_invoked": true,
+          "expected_status": "unsupported",
+          "actual_status": "ok",
+          "expected_tool": null,
+          "actual_tool": "close",
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 94,
+          "model_invoked": true,
+          "expected_status": "unsupported",
+          "actual_status": "ok",
+          "expected_tool": null,
+          "actual_tool": "benchmark_coverage",
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 102,
+          "model_invoked": true,
+          "expected_status": "unsupported",
+          "actual_status": "ok",
+          "expected_tool": null,
+          "actual_tool": "close",
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 103,
+          "model_invoked": true,
+          "expected_status": "unsupported",
+          "actual_status": "ok",
+          "expected_tool": null,
+          "actual_tool": "benchmark_coverage",
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 105,
+          "model_invoked": true,
+          "expected_status": "unsupported",
+          "actual_status": "ok",
+          "expected_tool": null,
+          "actual_tool": "close",
+          "values_match": false,
+          "evidence_matches": false
+        }
+      ]
+    },
+    "initial_authored": {
+      "cases": 135,
+      "cases_using_model": 65,
+      "financial_cases": 44,
+      "financial_cases_using_model": 28,
+      "numeric_correct": 20,
+      "evidence_correct": 20,
+      "financial_tool_correct": 20,
+      "passed": 99,
+      "refusal_cases": 91,
+      "refusal_status_correct": 79,
+      "unsupported_answers": 0,
+      "requests": 65,
+      "tokens": 11834,
+      "p50_ms": 20.444400026462972,
+      "p95_ms": 6893.436120025581,
+      "failures": [
+        {
+          "fixture_line": 1,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "close",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 2,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "pmpm",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 3,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "benchmark_coverage",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 4,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "restatement",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 6,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "pmpm",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 7,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "benchmark_coverage",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 8,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "restatement",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 10,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "pmpm",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 11,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "benchmark_coverage",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 12,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "restatement",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 13,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "close",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 14,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "pmpm",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 15,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "benchmark_coverage",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 16,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "restatement",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 18,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "pmpm",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 19,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "benchmark_coverage",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 20,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "restatement",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 21,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "close",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 22,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "pmpm",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 24,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "restatement",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 25,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "close",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 26,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "pmpm",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 27,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "benchmark_coverage",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 28,
+          "model_invoked": true,
+          "expected_status": "ok",
+          "actual_status": "unsupported",
+          "expected_tool": "restatement",
+          "actual_tool": null,
+          "values_match": false,
+          "evidence_matches": false
+        },
+        {
+          "fixture_line": 45,
+          "model_invoked": true,
+          "expected_status": "no_evidence",
+          "actual_status": "unsupported",
+          "expected_tool": "close",
+          "actual_tool": null,
+          "values_match": true,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 46,
+          "model_invoked": true,
+          "expected_status": "no_evidence",
+          "actual_status": "unsupported",
+          "expected_tool": "pmpm",
+          "actual_tool": null,
+          "values_match": true,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 47,
+          "model_invoked": true,
+          "expected_status": "no_evidence",
+          "actual_status": "unsupported",
+          "expected_tool": "benchmark_coverage",
+          "actual_tool": null,
+          "values_match": true,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 48,
+          "model_invoked": true,
+          "expected_status": "no_evidence",
+          "actual_status": "unsupported",
+          "expected_tool": "restatement",
+          "actual_tool": null,
+          "values_match": true,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 50,
+          "model_invoked": true,
+          "expected_status": "no_evidence",
+          "actual_status": "unsupported",
+          "expected_tool": "close",
+          "actual_tool": null,
+          "values_match": true,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 51,
+          "model_invoked": true,
+          "expected_status": "no_evidence",
+          "actual_status": "unsupported",
+          "expected_tool": "pmpm",
+          "actual_tool": null,
+          "values_match": true,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 54,
+          "model_invoked": true,
+          "expected_status": "no_evidence",
+          "actual_status": "unsupported",
+          "expected_tool": "restatement",
+          "actual_tool": null,
+          "values_match": true,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 56,
+          "model_invoked": true,
+          "expected_status": "no_evidence",
+          "actual_status": "unsupported",
+          "expected_tool": "benchmark_coverage",
+          "actual_tool": null,
+          "values_match": true,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 58,
+          "model_invoked": true,
+          "expected_status": "no_evidence",
+          "actual_status": "unsupported",
+          "expected_tool": "pmpm",
+          "actual_tool": null,
+          "values_match": true,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 59,
+          "model_invoked": true,
+          "expected_status": "no_evidence",
+          "actual_status": "unsupported",
+          "expected_tool": "restatement",
+          "actual_tool": null,
+          "values_match": true,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 62,
+          "model_invoked": true,
+          "expected_status": "no_evidence",
+          "actual_status": "unsupported",
+          "expected_tool": "benchmark_coverage",
+          "actual_tool": null,
+          "values_match": true,
+          "evidence_matches": true
+        },
+        {
+          "fixture_line": 63,
+          "model_invoked": true,
+          "expected_status": "no_evidence",
+          "actual_status": "unsupported",
+          "expected_tool": "pmpm",
+          "actual_tool": null,
+          "values_match": true,
+          "evidence_matches": true
+        }
+      ]
+    }
+  },
+  "limits": [
+    "The tool guard can override an explicit metric and refuses ungrounded route proposals. These results measure the integrated pipeline.",
+    "Rules handle comparisons and explicit policy cases before model invocation.",
+    "The authored questions were reused as a regression suite during remediation.",
+    "No general-purpose or clinical benchmark was run."
+  ]
+}
