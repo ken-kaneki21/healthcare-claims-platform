@@ -10,10 +10,11 @@ flowchart LR
   C --> P[Parquet close facts]
   P --> B[dbt finance marts]
   D --> J[Manifested replay journal]
+  J --> C
   O --> M[Point-in-time cost experiments]
   C --> A[Tenant-scoped financial tools]
   A --> S[Local FastAPI service]
   A --> E[Financial gold evaluation]
 ```
 
-Payment deltas are signed numeric adjustments. The ledger does not use cryptographic signatures. The portable build preserves the existing materialized close and separately validates journal replay. The journal is the integration boundary for future close ingestion. The API opens the verified baseline SQLite database in read-only mode.
+Payment deltas are signed numeric adjustments. The ledger does not use cryptographic signatures. The journal-backed close recomputes both cutoffs in a separate database using accepted deliveries and the existing independent ledger. The baseline command remains available. The API can open either verified SQLite close database in read-only mode.

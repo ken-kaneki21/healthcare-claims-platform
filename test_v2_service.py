@@ -53,6 +53,7 @@ class FinancialServiceTests(unittest.TestCase):
                 ).status_code,
                 401,
             )
+
             ok = client.get(path, headers=headers)
             self.assertEqual(ok.status_code, 200)
             self.assertTrue(ok.headers["x-request-id"])
@@ -79,3 +80,22 @@ class FinancialServiceTests(unittest.TestCase):
                 ).status_code,
                 422,
             )
+
+    def test_rate_limit_is_scoped_to_signed_tenant(self):
+        try:
+            from fastapi.testclient import TestClient
+
+            from healthcare.api import create_app, issue_token
+        except ImportError:
+            self.skipTest("Install requirements-v2.txt for API integration tests")
+        secret = "local-test-only-signing-key-000000000000"
+        with TestClient(
+            create_app(self.database, secret, requests_per_minute=1)
+        ) as client:
+            for tenant in (1, 2):
+                headers = {"Authorization": "Bearer " + issue_token(secret, tenant)}
+                route = f"/finance/{tenant}/pmpm/2025-12"
+                self.assertEqual(client.get(route, headers=headers).status_code, 200)
+                limited = client.get(route, headers=headers)
+                self.assertEqual(limited.status_code, 429)
+                self.assertIn("retry-after", limited.headers)

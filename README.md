@@ -15,6 +15,28 @@ python -m healthcare.cli full-build --database out/v2-full.sqlite
 
 Set `CLAIMS_DEMO_SECRET` to a randomly generated value of at least 32 bytes, then use `python -m healthcare.cli token --tenant 1` and `python -m healthcare.cli serve --database out/v2.sqlite` for the loopback API and OpenAPI documentation. Use the token in the Authorization Bearer header. See [security](docs/security.md) and the [runbook](docs/runbooks.md).
 
+### Journal close and registered predictions
+
+```text
+python build_platform.py --members 1000 --tenants 3 --database out/three-source.sqlite
+python -m healthcare.cli replay-feed --reference out/three-source.sqlite --database out/journal.sqlite --tenant 1
+python -m healthcare.cli replay-feed --reference out/three-source.sqlite --database out/journal.sqlite --tenant 2
+python -m healthcare.cli replay-feed --reference out/three-source.sqlite --database out/journal.sqlite --tenant 3
+python -m healthcare.cli journal-close --reference out/three-source.sqlite --journal out/journal.sqlite --database out/journal-close.sqlite
+```
+
+Use a separate journal for each generated population. Replay skips committed pages after checking their manifest. The close fails before publishing if a tenant's missing deliveries differ from the oracle.
+
+After `train` creates its report, set `CLAIMS_REGISTRY_SECRET` to a separate locally generated secret of at least 32 bytes. Keep the secret outside Git.
+
+```text
+python -m healthcare.cli register-model --database out/registry.sqlite --version ridge-1 --model-report out/v2-model-evidence.json
+python -m healthcare.cli promote-model --database out/registry.sqlite --version ridge-1
+python -m healthcare.cli predict-model --database out/registry.sqlite --reference out/v2.sqlite --out out/champion.csv
+```
+
+Set `CLAIMS_PREDICTIONS` to the resulting CSV before starting the API. If two versions have been promoted, `rollback-model --database out/registry.sqlite` restores the prior champion. Regenerate the batch file and restart the API after a promotion or rollback.
+
 A synthetic healthcare database and claims-close workflow for two fictional clients. The full local run generated **50,000 members, 1,181,592 member-months, 1,727,344 claims, and 2,979,003 claim deliveries** over 24 months. Providers, member aliases, encounters, diagnoses, risk snapshots, rates, payments, and reporting tables share the same generated keys.
 
 ## Full build
