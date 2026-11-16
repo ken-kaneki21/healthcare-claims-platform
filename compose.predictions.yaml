@@ -1,0 +1,9 @@
+services:
+  api:
+    environment:
+      CLAIMS_PREDICTIONS: /data/predictions.csv
+    volumes:
+      - type: bind
+        source: ${CLAIMS_PREDICTIONS_HOST:?Set the local prediction CSV path}
+        target: /data/predictions.csv
+        read_only: true

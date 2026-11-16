@@ -1,0 +1,21 @@
+{
+  "serving": {
+    "skipped": [],
+    "distributions": 22,
+    "advisories": 0,
+    "runtime": "Python 3.12 Docker image"
+  },
+  "training": {
+    "skipped": "Official torch 2.15.0+cpu variant was unavailable in the PyPI advisory lookup.",
+    "distributions": 82,
+    "setuptools": "84.2.1",
+    "advisories": 0,
+    "upstream_osv_advisories": 0,
+    "runtime": "Python 3.14 CPU",
+    "filelock": "4.2.4"
+  },
+  "limits": [
+    "Python distributions only. Container operating system packages were outside this audit.",
+    "A clean advisory lookup does not prove absence of vulnerabilities."
+  ]
+}

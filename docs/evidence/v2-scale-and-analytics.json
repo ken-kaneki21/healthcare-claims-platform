@@ -1,0 +1,344 @@
+{
+  "environment": {
+    "python": "3.10",
+    "physical_ram_bytes": 16473133056,
+    "logical_processors": 12,
+    "cpu": "AMD Ryzen 5 5600H",
+    "storage": "project workspace on OneDrive",
+    "os": "Windows"
+  },
+  "prior_full_journal_seconds": 1009.523,
+  "profiling": {
+    "members": 1000,
+    "old_direct_sqlite_calls": 176251,
+    "workspace_old_seconds": 8.906,
+    "new_direct_sqlite_calls": 157,
+    "temp_old_seconds": 9.725,
+    "workspace_new_seconds": 1.046,
+    "deliveries": 59565,
+    "notes": "Same source on same host. Both ran with cProfile. Query plan separates primary-key pagination from row validation and insert overhead.",
+    "temp_new_seconds": 1.066,
+    "new_executemany_calls": 120
+  },
+  "benchmark": [
+    {
+      "members": 1000,
+      "seed": 42,
+      "months": 24,
+      "rows": {
+        "client": 2,
+        "provider": 500,
+        "member": 1000,
+        "member_alias": 1043,
+        "member_month": 23632,
+        "risk_snapshot": 8000,
+        "claim": 34558,
+        "encounter": 34558,
+        "diagnosis": 34229,
+        "payment_event": 57084,
+        "claim_delivery": 59565,
+        "close_fact": 47264
+      },
+      "closes": [
+        {
+          "run": "original",
+          "cutoff": "2026-01-15",
+          "rows": 23632,
+          "paid_cents": 813950427,
+          "ledger_differences": 0,
+          "seconds": 0.3
+        },
+        {
+          "run": "revised",
+          "cutoff": "2026-03-31",
+          "rows": 23632,
+          "paid_cents": 836828731,
+          "ledger_differences": 0,
+          "seconds": 0.28
+        }
+      ],
+      "database_bytes": 9449472,
+      "seconds": 1.47,
+      "checkpoint": {
+        "tenant": 1,
+        "batches": 1,
+        "deliveries": 10000,
+        "inserted_versions": 10000
+      },
+      "checkpoint_seconds": 0.115,
+      "historical_backfill_seconds": 0.649,
+      "journal_ingestion_seconds": 0.764,
+      "journal_bytes": 4247552,
+      "journal_unique_versions": 57084,
+      "journal_deliveries_per_second": 77992.19,
+      "journal_close": {
+        "close_source": "committed_journal",
+        "closes": [
+          {
+            "run": "original",
+            "cutoff": "2026-01-15",
+            "rows": 23632,
+            "paid_cents": 813950427,
+            "ledger_differences": 0,
+            "seconds": 0.34
+          },
+          {
+            "run": "revised",
+            "cutoff": "2026-03-31",
+            "rows": 23632,
+            "paid_cents": 836828731,
+            "ledger_differences": 0,
+            "seconds": 0.35
+          }
+        ],
+        "seconds": 1.0
+      },
+      "end_to_end_seconds": 3.23,
+      "retry_seconds": 0.22,
+      "retry_inserted_versions": 0,
+      "close_fact_mismatches": 0,
+      "peak_working_set_bytes": 41762816
+    },
+    {
+      "members": 10000,
+      "seed": 42,
+      "months": 24,
+      "rows": {
+        "client": 2,
+        "provider": 500,
+        "member": 10000,
+        "member_alias": 10434,
+        "member_month": 236318,
+        "risk_snapshot": 80000,
+        "claim": 345473,
+        "encounter": 345473,
+        "diagnosis": 342140,
+        "payment_event": 570952,
+        "claim_delivery": 595776,
+        "close_fact": 472636
+      },
+      "closes": [
+        {
+          "run": "original",
+          "cutoff": "2026-01-15",
+          "rows": 236318,
+          "paid_cents": 8135048287,
+          "ledger_differences": 0,
+          "seconds": 4.26
+        },
+        {
+          "run": "revised",
+          "cutoff": "2026-03-31",
+          "rows": 236318,
+          "paid_cents": 8362150624,
+          "ledger_differences": 0,
+          "seconds": 4.61
+        }
+      ],
+      "database_bytes": 95969280,
+      "seconds": 17.52,
+      "checkpoint": {
+        "tenant": 1,
+        "batches": 1,
+        "deliveries": 10000,
+        "inserted_versions": 10000
+      },
+      "checkpoint_seconds": 0.764,
+      "historical_backfill_seconds": 41.621,
+      "journal_ingestion_seconds": 42.385,
+      "journal_bytes": 43618304,
+      "journal_unique_versions": 570952,
+      "journal_deliveries_per_second": 14056.25,
+      "journal_close": {
+        "close_source": "committed_journal",
+        "closes": [
+          {
+            "run": "original",
+            "cutoff": "2026-01-15",
+            "rows": 236318,
+            "paid_cents": 8135048287,
+            "ledger_differences": 0,
+            "seconds": 4.86
+          },
+          {
+            "run": "revised",
+            "cutoff": "2026-03-31",
+            "rows": 236318,
+            "paid_cents": 8362150624,
+            "ledger_differences": 0,
+            "seconds": 4.92
+          }
+        ],
+        "seconds": 10.35
+      },
+      "end_to_end_seconds": 70.257,
+      "retry_seconds": 2.146,
+      "retry_inserted_versions": 0,
+      "close_fact_mismatches": 0,
+      "peak_working_set_bytes": 65843200
+    },
+    {
+      "members": 50000,
+      "seed": 42,
+      "months": 24,
+      "rows": {
+        "client": 2,
+        "provider": 500,
+        "member": 50000,
+        "member_alias": 52173,
+        "member_month": 1181592,
+        "risk_snapshot": 400000,
+        "claim": 1727344,
+        "encounter": 1727344,
+        "diagnosis": 1710691,
+        "payment_event": 2854878,
+        "claim_delivery": 2979003,
+        "close_fact": 2363184
+      },
+      "closes": [
+        {
+          "run": "original",
+          "cutoff": "2026-01-15",
+          "rows": 1181592,
+          "paid_cents": 40677158320,
+          "ledger_differences": 0,
+          "seconds": 23.07
+        },
+        {
+          "run": "revised",
+          "cutoff": "2026-03-31",
+          "rows": 1181592,
+          "paid_cents": 41806197165,
+          "ledger_differences": 0,
+          "seconds": 27.58
+        }
+      ],
+      "database_bytes": 484765696,
+      "seconds": 115.79,
+      "checkpoint": {
+        "tenant": 1,
+        "batches": 1,
+        "deliveries": 10000,
+        "inserted_versions": 10000
+      },
+      "checkpoint_seconds": 2.489,
+      "historical_backfill_seconds": 850.551,
+      "journal_ingestion_seconds": 853.04,
+      "journal_bytes": 220053504,
+      "journal_unique_versions": 2854878,
+      "journal_deliveries_per_second": 3492.22,
+      "journal_close": {
+        "close_source": "committed_journal",
+        "closes": [
+          {
+            "run": "original",
+            "cutoff": "2026-01-15",
+            "rows": 1181592,
+            "paid_cents": 40677158320,
+            "ledger_differences": 0,
+            "seconds": 29.4
+          },
+          {
+            "run": "revised",
+            "cutoff": "2026-03-31",
+            "rows": 1181592,
+            "paid_cents": 41806197165,
+            "ledger_differences": 0,
+            "seconds": 25.44
+          }
+        ],
+        "seconds": 56.83
+      },
+      "end_to_end_seconds": 1025.659,
+      "retry_seconds": 8.055,
+      "retry_inserted_versions": 0,
+      "close_fact_mismatches": 0,
+      "peak_working_set_bytes": 166379520
+    }
+  ],
+  "three_client": {
+    "members": 1000,
+    "seed": 42,
+    "months": 24,
+    "rows": {
+      "client": 3,
+      "provider": 750,
+      "member": 1000,
+      "member_alias": 1043,
+      "member_month": 23468,
+      "risk_snapshot": 8666,
+      "claim": 34359,
+      "encounter": 34359,
+      "diagnosis": 34025,
+      "payment_event": 56788,
+      "claim_delivery": 59257,
+      "close_fact": 46936
+    },
+    "closes": [
+      {
+        "run": "original",
+        "cutoff": "2026-01-15",
+        "rows": 23468,
+        "paid_cents": 767855654,
+        "ledger_differences": 0,
+        "seconds": 0.48
+      },
+      {
+        "run": "revised",
+        "cutoff": "2026-03-31",
+        "rows": 23468,
+        "paid_cents": 788041051,
+        "ledger_differences": 0,
+        "seconds": 0.49
+      }
+    ],
+    "database_bytes": 9482240,
+    "seconds": 2.19,
+    "checkpoint": {
+      "tenant": 1,
+      "batches": 1,
+      "deliveries": 10000,
+      "inserted_versions": 10000
+    },
+    "checkpoint_seconds": 0.193,
+    "historical_backfill_seconds": 0.945,
+    "journal_ingestion_seconds": 1.138,
+    "journal_bytes": 4235264,
+    "journal_unique_versions": 56788,
+    "journal_deliveries_per_second": 52085.07,
+    "journal_close": {
+      "close_source": "committed_journal",
+      "closes": [
+        {
+          "run": "original",
+          "cutoff": "2026-01-15",
+          "rows": 23468,
+          "paid_cents": 767855654,
+          "ledger_differences": 0,
+          "seconds": 0.49
+        },
+        {
+          "run": "revised",
+          "cutoff": "2026-03-31",
+          "rows": 23468,
+          "paid_cents": 788041051,
+          "ledger_differences": 0,
+          "seconds": 0.53
+        }
+      ],
+      "seconds": 1.14
+    },
+    "end_to_end_seconds": 4.467,
+    "retry_seconds": 0.28,
+    "retry_inserted_versions": 0,
+    "close_fact_mismatches": 0,
+    "peak_working_set_bytes": 41033728
+  },
+  "dbt": {
+    "tests": 3,
+    "mismatches": 0,
+    "models": 3,
+    "changed_and_removed_snapshot_finance_rows": 142,
+    "builds": 4
+  }
+}

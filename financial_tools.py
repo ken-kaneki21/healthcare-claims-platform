@@ -8,7 +8,8 @@ from pathlib import Path
 
 QUERIES = {
     "close": """
-        SELECT f.paid_cents,f.member_months,f.pmpm_cents,f.missing_benchmark_rows
+        SELECT f.paid_cents,f.member_months,f.pmpm_cents,f.missing_benchmark_rows,
+               f.benchmark_cents,f.expense_to_benchmark
         FROM monthly_finance f JOIN month m ON m.id=f.month_id
         WHERE f.client_id=? AND m.starts=? AND f.run_id='revised'
     """,

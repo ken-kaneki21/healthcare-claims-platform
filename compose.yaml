@@ -1,0 +1,17 @@
+services:
+  api:
+    build: .
+    read_only: true
+    mem_limit: 256m
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "127.0.0.1:${CLAIMS_HTTP_PORT:-8000}:8000"
+    environment:
+      CLAIMS_DATABASE: /data/claims.sqlite
+      CLAIMS_DEMO_SECRET: ${CLAIMS_DEMO_SECRET:?Set a local secret of at least 32 bytes}
+    volumes:
+      - type: bind
+        source: ${CLAIMS_DATABASE_HOST:-./out/v2.sqlite}
+        target: /data/claims.sqlite
+        read_only: true

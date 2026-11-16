@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 
 
-def cohort(db, index):
+def cohort(db, index, *, include_target=True):
     return np.array(db.execute("""
         WITH cutoffs AS (
             SELECT starts cutoff,date(starts,'+3 months') target_end
@@ -24,7 +24,7 @@ def cohort(db, index):
         ), target AS (
             SELECT c.client_id,c.member_id,SUM(p.delta_cents) cost
             FROM claim c JOIN payment_event p ON p.claim_id=c.id CROSS JOIN cutoffs
-            WHERE c.month_id BETWEEN :index AND :index+2
+            WHERE :include_target AND c.month_id BETWEEN :index AND :index+2
               AND p.received_date<date(target_end,'+90 days')
             GROUP BY c.client_id,c.member_id
         )
@@ -36,7 +36,12 @@ def cohort(db, index):
         LEFT JOIN history h ON h.client_id=m.client_id AND h.member_id=m.id
         LEFT JOIN target t ON t.client_id=m.client_id AND t.member_id=m.id
         ORDER BY m.client_id,m.id
-    """, {"index": index}).fetchall(), dtype=np.float64)
+    """, {"index": index, "include_target": include_target}).fetchall(), dtype=np.float64).reshape(-1, 8)
+
+
+def predict_values(rows, model):
+    normalized = (rows[:, 2:-1] - model["mean"]) / model["scale"]
+    return np.maximum(0, model["intercept"] + normalized @ model["coefficients"])
 
 
 def train(database, output):
@@ -79,9 +84,8 @@ def train(database, output):
 def predict(database, model_path, index, output):
     model = json.loads(model_path.read_text(encoding="utf-8"))
     with closing(sqlite3.connect(f"{database.resolve().as_uri()}?mode=ro",uri=True)) as db:
-        rows = cohort(db, index)
-    values = np.maximum(0, model["intercept"]+
-                        ((rows[:,2:-1]-model["mean"])/model["scale"]) @ model["coefficients"])
+        rows = cohort(db, index, include_target=False)
+    values = predict_values(rows, model)
     output.parent.mkdir(parents=True,exist_ok=True)
     with output.open("w",encoding="utf-8",newline="") as handle:
         writer = csv.writer(handle)

@@ -6,3 +6,6 @@ __pycache__/
 analytics/target/
 analytics/logs/
 analytics/.user.yml
+.env
+mlruns/
+.ruff_cache/

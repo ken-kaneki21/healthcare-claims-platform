@@ -1,0 +1,19 @@
+# Financial agent evaluation
+
+The offline run uses a rules-based router. It checks close amounts, PMPM and restatement values against signed ledger totals and eligibility counts. The `finance-gold-2` generator includes unavailable periods, requests for another numbered tenant, and ambiguity and injection fixtures. The restatement tool returns an evidence-backed breakdown between late first payments and adjustments. Many questions use templates. Treat this score as an integration regression check.
+
+The optional HTTPS adapter sends only the synthetic question to a configured chat-completions service. The provider can choose an allowed operation and a month. SQL supplies amounts and evidence. Configure `CLAIMS_LLM_ENDPOINT`, `CLAIMS_LLM_MODEL`, and `CLAIMS_LLM_API_KEY`, then run `python -m healthcare.cli eval-agent --database out/v2.sqlite --provider live --allow-billed` only after approving the provider and its charges. No live metric is recorded in this branch.
+
+The authored regression suite is separate from the parameterized ledger evaluation. Its 159 case texts cover single-month queries, explicit two-month comparisons, missing periods, ambiguous requests, out-of-scope questions and attempts to change tenant context. `python -m unittest test_financial_questions -v` runs the authored tests, including a ledger-backed comparison check.
+
+The optional local inference overlay runs a pinned llama.cpp image with Qwen2.5-1.5B-Instruct Q4_K_M. The model classifies the request into an allowed tool and month. Parameterized SQL executes under the authenticated tenant. The application renders numbers and citations from verified tool data. Explicit comparisons, missing periods and tenant-policy denials can be handled before a model call.
+
+With the local model running, set `CLAIMS_LLM_ENDPOINT=http://127.0.0.1:18765/v1/chat/completions` and `CLAIMS_LLM_MODEL=qwen2.5-1.5b-instruct-q4_k_m`. Use `python -m healthcare.live_evaluation --database out/local-oidc/claims.sqlite --out out/live-authored.json` for model-assisted and rules-only comparisons over the same authored cases. The complete ledger evaluation is available via `python -m healthcare.cli eval-agent --provider local --database out/local-oidc/claims.sqlite --out out/live-gold.json`.
+
+## Live Qwen verification
+
+The final authored retest used local CPU inference with Qwen2.5-1.5B-Instruct Q4_K_M. It passed 135/135 end-to-end scenarios. Qwen was invoked in 65 cases. The other cases used deterministic comparison or policy checks. The pipeline matched numerical results, selected tools, and source evidence for all 44 financial cases. It handled all 91 refusal, missing-data, ambiguity, or unsupported cases correctly. There were zero unsupported answers and zero false refusals in this retest. The provider reported 8,638 tokens. Median and p95 elapsed time across the mixed suite were 18.17 ms and 1,630.41 ms. Local inference incurred no hosted API charge.
+
+The model proposes a tool. An exact metric name can constrain that choice, and an unsupported tool choice without a relevant cue is blocked. The application resolves months, enforces tenant scope, runs SQL and formats the evidence. The score is for the guarded pipeline. Earlier passes expose raw routing limits: the original prompt passed 99/135 and the schema-only attempt passed 109/135, including ten unsupported answers. The authors' suite was reused for regression after those failures. These results measure this synthetic finance task.
+
+The separate ledger and policy suite passed 281/281, with 247 actual model calls and 216/216 amount, tool, and evidence checks. The inference runtime reported 31,034 tokens. Median elapsed time was 839.93 ms and p95 was 2,044.22 ms across the mixed suite. See [the redacted live evidence](evidence/v2-live-llm-evaluation.json) for final scores and failed trial details.

@@ -1,0 +1,7 @@
+-r requirements.txt
+-r requirements-serving.txt
+scikit-learn==1.7.2
+mlflow-skinny==3.18.0
+SQLAlchemy>=2,<3
+alembic>=1.13,<2
+ruff==0.17.5
