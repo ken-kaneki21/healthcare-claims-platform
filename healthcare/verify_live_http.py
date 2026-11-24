@@ -37,10 +37,11 @@ def run(fixture, report, model_path, runtime_revision, startup_timeout):
         "alias": model,
         "requested_runtime_revision": runtime_revision,
     }
+    digest = hashlib.sha256()
     with model_path.open("rb") as artifact:
-        report["model"]["artifact_sha256"] = hashlib.file_digest(
-            artifact, "sha256"
-        ).hexdigest()
+        for chunk in iter(lambda: artifact.read(1024 * 1024), b""):
+            digest.update(chunk)
+    report["model"]["artifact_sha256"] = digest.hexdigest()
     deadline = time.monotonic() + startup_timeout
     with httpx.Client(trust_env=False, timeout=5) as probe:
         while True:
