@@ -146,3 +146,5 @@ The next release should add a source manifest and incremental extraction. See [p
 ## Integrated forecast investigations
 
 The integration adds a signed, approval-bound model snapshot and a persistent investigation endpoint. Synthetic claims, registry, single and paginated prediction routes, drift and financial verification all use the same approved snapshot. Start with the [offline demo and engineering walkthrough](docs/ENGINEERING_WALKTHROUGH.md). The [acceptance matrix](docs/INTEGRATION_ACCEPTANCE.md) links the measured and reproduced results.
+
+[Portfolio review, quickstart and evidence](docs/portfolio-review.md)
