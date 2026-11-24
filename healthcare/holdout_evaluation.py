@@ -10,8 +10,8 @@ from statistics import median
 from time import perf_counter
 
 import httpx
-
 from build_platform import build
+
 from healthcare.agent import provider_router, question_answer, rules
 from healthcare.provider import settings
 
@@ -45,7 +45,8 @@ def oracle_check(db, case, response):
     else:
         evidence_ok &= evidence.get("comparison_month") == case["months"][1]
         amounts_ok = response.get("values") == {
-            "first": expected[0], "second": expected[1],
+            "first": expected[0],
+            "second": expected[1],
             "difference": expected[1] - expected[0],
         }
     return amounts_ok, evidence_ok
@@ -68,23 +69,36 @@ def evaluate(db, cases, route, usage):
         actual_evidence = response.get("evidence", {})
         correct_arguments = (
             actual_evidence.get("month") == months[0]
-            and (len(months) == 1 or actual_evidence.get("comparison_month") == months[1])
+            and (
+                len(months) == 1 or actual_evidence.get("comparison_month") == months[1]
+            )
             if months
             else not actual_evidence
         )
-        rows.append({
-            "id": case["id"], "actual": response["status"],
-            "expected": case["status"], "actual_tool": response.get("operation"),
-            "expected_tool": case["tool"], "tool_correct": tool_ok,
-            "arguments_correct": correct_arguments, "numerical_correct": numeric,
-            "evidence_correct": evidence, "model_invoked": usage.get("requests", 0) > before,
-            "unsupported_answer": case["status"] != "ok" and "values" in response,
-            "tenant_boundary_failure": (
-                case["id"] == "wrong-client" and response["status"] != "denied"
-            ),
-            "passed": status_ok and tool_ok and correct_arguments and numeric and evidence,
-            "elapsed_ms": ms,
-        })
+        rows.append(
+            {
+                "id": case["id"],
+                "actual": response["status"],
+                "expected": case["status"],
+                "actual_tool": response.get("operation"),
+                "expected_tool": case["tool"],
+                "tool_correct": tool_ok,
+                "arguments_correct": correct_arguments,
+                "numerical_correct": numeric,
+                "evidence_correct": evidence,
+                "model_invoked": usage.get("requests", 0) > before,
+                "unsupported_answer": case["status"] != "ok" and "values" in response,
+                "tenant_boundary_failure": (
+                    case["id"] == "wrong-client" and response["status"] != "denied"
+                ),
+                "passed": status_ok
+                and tool_ok
+                and correct_arguments
+                and numeric
+                and evidence,
+                "elapsed_ms": ms,
+            }
+        )
     return {
         "cases": len(rows),
         "passed": sum(row["passed"] for row in rows),
@@ -111,26 +125,39 @@ def mock_transport_checks(db):
         content = {"operation": "close"}
         if mode == "/invalid":
             content["tenant"] = 2
-        return httpx.Response(200, json={
-            "choices": [{"message": {"content": json.dumps(content)}}],
-            "usage": {"total_tokens": 0},
-        })
+        return httpx.Response(
+            200,
+            json={
+                "choices": [{"message": {"content": json.dumps(content)}}],
+                "usage": {"total_tokens": 0},
+            },
+        )
 
     results = {}
     with httpx.Client(transport=httpx.MockTransport(transport)) as client:
-        for mode, expected in (("valid", "ok"), ("invalid", "unsupported"),
-                               ("timeout", "ReadTimeout")):
-            route, usage = provider_router(client, endpoint.rsplit("/", 3)[0] + "/" + mode,
-                                          "", "mock")
+        for mode, expected in (
+            ("valid", "ok"),
+            ("invalid", "unsupported"),
+            ("timeout", "ReadTimeout"),
+        ):
+            route, usage = provider_router(
+                client, endpoint.rsplit("/", 3)[0] + "/" + mode, "", "mock"
+            )
             try:
                 response = question_answer(db, 1, question, route)
                 actual = response["status"]
             except httpx.ReadTimeout:
                 actual = "ReadTimeout"
             results[mode] = actual == expected and usage["requests"] == 1
-    wrong_month = question_answer(db, 1, question, lambda _: {
-        "operation": "close", "month": "2025-07-01",
-    })
+    wrong_month = question_answer(
+        db,
+        1,
+        question,
+        lambda _: {
+            "operation": "close",
+            "month": "2025-07-01",
+        },
+    )
     results["contradictory_tool_month"] = wrong_month == {"status": "unsupported"}
     return results
 
@@ -141,9 +168,14 @@ def main():
     parser.add_argument("--live", action="store_true")
     parser.add_argument("--require-correct", action="store_true")
     args = parser.parse_args()
-    data = json.loads(Path("tests/fixtures/finance_holdout_v1.json").read_text(encoding="utf-8"))
-    report = {"fixture": data["version"], "label_provenance": data["label_provenance"],
-              "dataset": {"members": 100, "seed": 73, "tenants": 3, "synthetic": True}}
+    data = json.loads(
+        Path("tests/fixtures/finance_holdout_v1.json").read_text(encoding="utf-8")
+    )
+    report = {
+        "fixture": data["version"],
+        "label_provenance": data["label_provenance"],
+        "dataset": {"members": 100, "seed": 73, "tenants": 3, "synthetic": True},
+    }
     with tempfile.TemporaryDirectory() as temporary:
         database = Path(temporary) / "claims.sqlite"
         build(database, 100, 73, tenants=3)
@@ -155,14 +187,20 @@ def main():
                 endpoint, key, model = settings(local=True)
                 with httpx.Client(trust_env=False) as client:
                     try:
-                        probe = client.get(endpoint.rsplit("/", 2)[0] + "/models", timeout=2)
+                        probe = client.get(
+                            endpoint.rsplit("/", 2)[0] + "/models", timeout=2
+                        )
                         probe.raise_for_status()
                     except httpx.HTTPError as error:
-                        report["live"] = {"status": "blocked", "reason": type(error).__name__}
+                        report["live"] = {
+                            "status": "blocked",
+                            "reason": type(error).__name__,
+                        }
                     else:
                         route, usage = provider_router(client, endpoint, key, model)
                         report["live"] = {
-                            "status": "ran", "model": model,
+                            "status": "ran",
+                            "model": model,
                             **evaluate(db, data["cases"], route, usage),
                         }
     args.out.parent.mkdir(parents=True, exist_ok=True)
@@ -176,7 +214,8 @@ def main():
         report["rules"]["passed"] != report["rules"]["cases"]
         or not all(report["mock_transport"].values())
         or (
-            args.live and (
+            args.live
+            and (
                 report["live"]["status"] != "ran"
                 or report["live"]["passed"] != report["live"]["cases"]
             )

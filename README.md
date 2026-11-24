@@ -1,5 +1,8 @@
 # Healthcare claims platform
 
+[Authored finance routing holdout](docs/finance-holdout.md) reports the
+synthetic deterministic baseline, mock transport checks and local-model gate.
+
 ## V2 local preview
 
 The [implementation status](docs/IMPLEMENTATION_STATUS.md) records reproduced benchmarks, open gates and scope limits. Install `requirements-v2.txt` for API and model comparisons.
