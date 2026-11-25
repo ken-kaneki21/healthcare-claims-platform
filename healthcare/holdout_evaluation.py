@@ -10,8 +10,8 @@ from statistics import median
 from time import perf_counter
 
 import httpx
-from build_platform import build
 
+from build_platform import build
 from healthcare.agent import provider_router, question_answer, rules
 from healthcare.provider import settings
 
