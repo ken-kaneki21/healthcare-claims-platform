@@ -11,7 +11,12 @@ from financial_tools import answer
 
 MONTH = re.compile(r"\b\d{4}-(?:0[1-9]|1[0-2])\b")
 POLICY = re.compile(
-    r"\b(?:tenant|client)\s*#?\s*\d+\b|\b(?:ignore|override)\b.*\binstructions\b",
+    r"\b(?:tenant|client)\s*#?\s*\d+\b|"
+    r"\b(?:ignore|override|disregard)\b.*\binstructions\b",
+    re.IGNORECASE,
+)
+COMPARISON_CUE = re.compile(
+    r"\bcompare\b|\bchang(?:e|ed)\s+(?:between|from)\b",
     re.IGNORECASE,
 )
 OPERATIONS = {
@@ -23,7 +28,10 @@ OPERATIONS = {
     "benchmark coverage": "benchmark_coverage",
 }
 EXPLICIT_METRICS = {
-    "pmpm": re.compile(r"\bpmpm\b|\bper[- ]member[- ]per[- ]month\b", re.IGNORECASE),
+    "pmpm": re.compile(
+        r"\bpmpm\b|\bper[- ](?:member|covered person)[- ]per[- ]month\b",
+        re.IGNORECASE,
+    ),
     "benchmark_coverage": re.compile(r"\bbenchmark coverage\b", re.IGNORECASE),
     "restatement": re.compile(r"\brestatement\b", re.IGNORECASE),
 }
@@ -63,7 +71,7 @@ def question_answer(db: sqlite3.Connection, tenant: int, question: str, route=ru
     months = tuple(dict.fromkeys(MONTH.findall(question)))
     requested = set(months)
     if len(requested) > 1:
-        if len(months) == 2 and re.search(r"\bcompare\b", question, re.IGNORECASE):
+        if len(months) == 2 and COMPARISON_CUE.search(question):
             return compare_months(db, tenant, months, question)
         return {"status": "ambiguous"}
     if not requested:
@@ -152,7 +160,7 @@ def question_answer(db: sqlite3.Connection, tenant: int, question: str, route=ru
 
 def compare_months(db, tenant, months, question):
     text = question.lower()
-    if "pmpm" in text:
+    if EXPLICIT_METRICS["pmpm"].search(text):
         metric = "pmpm_cents"
     elif any(word in text for word in ("paid", "spend", "expense")):
         metric = "paid_cents"

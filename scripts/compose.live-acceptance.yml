@@ -1,0 +1,11 @@
+services:
+  llm:
+    ports: !override
+      - "127.0.0.1:${CLAIMS_EVAL_LLM_PORT}:8080"
+    volumes: !override
+      - type: bind
+        source: ${CLAIMS_EVAL_GGUF}
+        target: /models/qwen.gguf
+        read_only: true
+        bind:
+          create_host_path: false

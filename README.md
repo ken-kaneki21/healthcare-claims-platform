@@ -1,5 +1,8 @@
 # Healthcare claims platform
 
+[Authored finance routing holdout](docs/finance-holdout.md) reports the
+synthetic deterministic baseline, mock transport checks and local-model gate.
+
 ## V2 local preview
 
 The [implementation status](docs/IMPLEMENTATION_STATUS.md) records reproduced benchmarks, open gates and scope limits. Install `requirements-v2.txt` for API and model comparisons.
@@ -143,3 +146,5 @@ The next release should add a source manifest and incremental extraction. See [p
 ## Integrated forecast investigations
 
 The integration adds a signed, approval-bound model snapshot and a persistent investigation endpoint. Synthetic claims, registry, single and paginated prediction routes, drift and financial verification all use the same approved snapshot. Start with the [offline demo and engineering walkthrough](docs/ENGINEERING_WALKTHROUGH.md). The [acceptance matrix](docs/INTEGRATION_ACCEPTANCE.md) links the measured and reproduced results.
+
+[Portfolio review, quickstart and evidence](docs/portfolio-review.md)
